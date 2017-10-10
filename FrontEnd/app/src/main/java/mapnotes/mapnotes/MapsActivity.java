@@ -34,9 +34,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         sliderText = (TextView) findViewById(R.id.time_text);
         sliderText.setVisibility(View.GONE);
 
-        timeSlider.setMax(23);
+        timeSlider.setMax(95); //Number of 15 min intervals in a day
         Calendar cal = Calendar.getInstance();
-        timeSlider.setProgress(cal.get(Calendar.HOUR_OF_DAY));
+        timeSlider.setProgress(cal.get(Calendar.HOUR_OF_DAY) * 4);
         mapFragment.getMapAsync(this);
 
         server = new Server(this);
@@ -55,7 +55,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
         //Initialise Map
         //Disable Map Toolbar:
         mMap.getUiSettings().setMapToolbarEnabled(false);
@@ -63,13 +62,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         timeSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                String text = "";
-                if (i < 10) text = "0";
-                text += i + ":00";
-                sliderText.setText(text);
-                int x = timeSlider.getThumb().getBounds().right;
-                int width = sliderText.getWidth() / 2;
-                sliderText.setX(x - width);
+                sliderText.setText(timeOf(i));
+                //TODO: This is very hacky way of screen detection, find better way of doing this
+                if (i <= 91 && i >= 3) {
+                    int x = timeSlider.getThumb().getBounds().right;
+                    int width = sliderText.getWidth() / 2;
+                    sliderText.setX(x - width);
+                }
             }
 
             @Override
@@ -83,7 +82,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 server.getStringRequest("", new Function<String>() {
                     @Override
                     public void run(String input) {
-                        new AlertDialog.Builder(MapsActivity.this).setMessage("Got response from server:" + input).create();
+                        new AlertDialog.Builder(MapsActivity.this).setMessage("Got response from server: " + input).create().show();
                     }
                 });
                 sliderText.setVisibility(View.GONE);
@@ -94,5 +93,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+    }
+
+    private String timeOf(int i) {
+        int hour = i / 4;
+        int minute = (i % 4) * 15;
+        String hourText = hour < 10 ? "0" + hour : String.valueOf(hour);
+        String minText = minute < 10 ? "0" + minute : String.valueOf(minute);
+        return hourText + ":" + minText;
     }
 }

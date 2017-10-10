@@ -20,7 +20,8 @@
         android:textSize="20sp"
         android:background="@color/colorPrimary"
         android:textColor="@color/textColorPrimary"
-        android:padding="0dp"/>
+        android:layout_alignParentEnd="true"
+        android:padding="5dp"/>
 
     <SeekBar
         android:layout_width="match_parent"
