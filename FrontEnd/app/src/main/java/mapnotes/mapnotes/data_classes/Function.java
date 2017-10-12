@@ -1,4 +1,4 @@
-package mapnotes.mapnotes;
+package mapnotes.mapnotes.data_classes;
 
 /**
  * An abstract function class, that can be used for callbacks

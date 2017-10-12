@@ -12,6 +12,8 @@ import com.android.volley.toolbox.Volley;
 
 import org.json.JSONObject;
 
+import mapnotes.mapnotes.data_classes.Function;
+
 /**
  *  A server class used to send RESTful requests to the server
  *  Has a copy of the server address stored privately, currently
