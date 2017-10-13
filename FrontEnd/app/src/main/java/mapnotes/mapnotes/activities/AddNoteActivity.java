@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -98,7 +99,7 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
             }
         });
 
-        Button cancelButton = findViewById(R.id.cancel_button);
+        ImageView cancelButton = findViewById(R.id.cancel_button);
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

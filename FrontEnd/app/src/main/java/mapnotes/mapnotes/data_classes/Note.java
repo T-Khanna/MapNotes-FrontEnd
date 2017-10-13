@@ -71,7 +71,6 @@ public class Note implements Parcelable {
                 !title.equals("") &&
                 time != 0 &&
                 endTime != 0 &&
-                description != null &&
                 location != null;
     }
 
