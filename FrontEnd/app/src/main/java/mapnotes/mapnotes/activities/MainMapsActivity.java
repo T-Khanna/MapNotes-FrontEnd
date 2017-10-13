@@ -26,6 +26,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 import mapnotes.mapnotes.R;
 import mapnotes.mapnotes.Server;
@@ -79,6 +81,17 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         //Disable Map Toolbar:
         mMap.getUiSettings().setMapToolbarEnabled(false);
 
+        getLocation(new Function<Location>() {
+            @Override
+            public void run(Location input) {
+                if (input != null) {
+                    LatLng userLocation = new LatLng(input.getLatitude(), input.getLongitude());
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
+                    updateUI();
+                }
+            }
+        });
+
         timeSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -122,12 +135,8 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
                 });
             }
         });
-
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
     }
+
 
     private String timeOf(int i) {
         int hour = i / 4;
@@ -161,13 +170,20 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
 
     }
 
+    /**
+     * Request a permission via a dialog box, provide information as to why permission is needed
+     *
+     * @param permission - The permission string (usually from Manifest.permission.(permission))
+     * @param request_code - A unique request code for a permission, so on receiving result the
+     *                     program knows which permission was granted
+     * @param rationale - A message to the user so that they know why the permission is needed
+     */
     public void requestPermission(final String permission, final int request_code, final String rationale) {
         // Should we show an explanation?
         if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                 permission)) {
 
             // Show an explanation to the user *asynchronously* -- don't block
-
 
             new AlertDialog.Builder(this).setMessage(rationale)
                     .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
@@ -195,10 +211,30 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 Note newNote = data.getParcelableExtra("note");
-
+                Map<String, String> params = new HashMap<>();
+                params.put("note_id", "15");
+                server.postStringRequest("", params, new Function<String>() {
+                    @Override
+                    public void run(String input) {
+                        new AlertDialog.Builder(MainMapsActivity.this).setMessage("Got response from server: " + input).create().show();
+                    }
+                });
                 mMap.addMarker(new MarkerOptions().position(newNote.getLocation()).title(newNote.getTitle()));
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
             }
+        }
+    }
+
+    /**
+     * Check important permissions and update UI
+     */
+    private void updateUI() {
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
+            mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        } else {
+            mMap.setMyLocationEnabled(false);
+            mMap.getUiSettings().setMyLocationButtonEnabled(true);
         }
     }
 }

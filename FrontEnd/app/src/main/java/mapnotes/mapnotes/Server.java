@@ -12,6 +12,8 @@ import com.android.volley.toolbox.Volley;
 
 import org.json.JSONObject;
 
+import java.util.Map;
+
 import mapnotes.mapnotes.data_classes.Function;
 
 /**
@@ -32,19 +34,38 @@ public class Server {
     }
 
     public void getStringRequest(String serverLocation, final Function<String> onResponse) {
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, IP + serverLocation,
+        getStringRequest(serverLocation, null, onResponse);
+    }
+
+    public void getStringRequest(String serverLocation, final Map<String, String> params, final Function<String> onResponse) {
+        genericStringRequest(Request.Method.GET, serverLocation, params, onResponse);
+    }
+
+    private void genericStringRequest(int method, String serverLocation, final Map<String, String> params, final Function<String> onResponse) {
+        StringRequest stringRequest = new StringRequest(method, IP + serverLocation,
                 new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                onResponse.run(response);
-            }
-        }, new Response.ErrorListener() {
+                    @Override
+                    public void onResponse(String response) {
+                        onResponse.run(response);
+                    }
+                }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 //TODO: Error response
             }
-        });
+        }) {
+            @Override
+            public Map<String, String> getParams (){
+                return params;
+            }
+        };
         requests.add(stringRequest);
+        requests.start();
+
+    }
+
+    public void postStringRequest(String serverLocation, final Map<String, String> params, final Function<String> onResponse) {
+        genericStringRequest(Request.Method.POST, serverLocation, params, onResponse);
     }
 
     public void getJSONRequest(String serverLocation, final Function<JSONObject> onResponse) {
@@ -60,8 +81,12 @@ public class Server {
                 //TODO: Error response
             }
         });
+
         requests.add(request);
+        requests.start();
     }
+
+
 
 
 

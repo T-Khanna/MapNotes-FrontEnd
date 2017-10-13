@@ -1,7 +1,9 @@
 package mapnotes.mapnotes.activities;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
@@ -47,16 +49,23 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        //Initial UI settings
+        mMap.getUiSettings().setMapToolbarEnabled(false);
+
+        //Try and find location to zoom into and set initial marker
         Intent i = getIntent();
         Location location = i.getParcelableExtra("location");
 
         if (location != null) {
             LatLng marker = new LatLng(location.getLatitude(), location.getLongitude());
             mMap.addMarker(new MarkerOptions().position(marker));
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(marker));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker, 15));
             thisNote.setLocation(marker);
+            updateUI();
         }
 
+
+        //Set UI listeners
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -97,6 +106,24 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
                 finish();
             }
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mMap != null) {
+            updateUI();
+        }
+    }
+
+    private void updateUI() {
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
+            mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        } else {
+            mMap.setMyLocationEnabled(false);
+            mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        }
     }
 
 }
