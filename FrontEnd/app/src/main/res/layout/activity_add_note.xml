@@ -98,15 +98,13 @@
                 android:layout_marginLeft="16dp"
                 android:layout_marginTop="6dp"
                 android:textSize="18sp"
-                android:layout_marginBottom="24dp"
-                android:text="Sun, Oct 8, 2017"/>
+                android:layout_marginBottom="24dp"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
                 android:layout_alignParentRight="true"
-                android:text="18:00"
                 android:textSize="18sp"
                 android:layout_marginTop="6dp"
                 android:layout_marginRight="32dp"
@@ -121,19 +119,17 @@
                 android:id="@+id/end_date"
                 android:layout_marginLeft="16dp"
                 android:layout_marginBottom="24dp"
-                android:textSize="18sp"
-                android:text="Sun, Oct 8, 2017"/>
+                android:textSize="18sp"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
                 android:layout_below="@+id/start_time"
-                android:text="19:00"
                 android:textSize="18sp"
                 android:layout_marginBottom="24dp"
                 android:layout_marginRight="32dp"
-                android:id="@+id/endTime"/>
+                android:id="@+id/end_time"/>
 
         </RelativeLayout>
 
@@ -162,7 +158,7 @@
             android:layout_margin="8dp"
             android:id="@+id/location_text"
             android:layout_toRightOf="@+id/pin_icon"
-            android:text="Location: (Tap to change)"/>
+            android:text="Location: (Tap map to change)"/>
 
     </RelativeLayout>
 
