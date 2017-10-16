@@ -22,6 +22,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
@@ -29,6 +30,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+import mapnotes.mapnotes.NoteDisplayActivity;
 import mapnotes.mapnotes.R;
 import mapnotes.mapnotes.Server;
 import mapnotes.mapnotes.data_classes.Function;
@@ -43,6 +45,8 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
     private ImageView addNote;
     private final int REQUEST_ADD_NOTE = 34679;
     private final int REQUEST_ACCESS_LOCATION = 0;
+    private Marker lastMarker = null;
+    private Map<LatLng, Note> notes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +66,8 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         mapFragment.getMapAsync(this);
 
         server = new Server(this);
+
+        generateNotes();
     }
 
 
@@ -116,6 +122,21 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
                     }
                 });
                 sliderText.setVisibility(View.GONE);
+            }
+        });
+
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                if (marker.equals(lastMarker)) {
+                    Intent i = new Intent(MainMapsActivity.this, NoteDisplayActivity.class);
+                    Note note = notes.get(marker.getPosition());
+                    i.putExtra("note", note);
+                    System.out.println("Starting note display");
+                    startActivity(i);
+                }
+                lastMarker = marker;
+                return false;
             }
         });
 
@@ -216,6 +237,9 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
                         new AlertDialog.Builder(MainMapsActivity.this).setMessage("Got response from server: " + input).create().show();
                     }
                 });
+                //Add note to class variable notes
+                notes.put(newNote.getLocation(), newNote);
+
                 mMap.addMarker(new MarkerOptions().position(newNote.getLocation()).title(newNote.getTitle()));
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
             }
@@ -233,5 +257,15 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
             mMap.setMyLocationEnabled(false);
             mMap.getUiSettings().setMyLocationButtonEnabled(true);
         }
+    }
+
+    /**
+     * To be expanded, will take response from server to generate a map of the notes.
+     */
+    private void generateNotes() {
+        Map<LatLng, Note> newNotes = new HashMap<>();
+
+
+        notes = newNotes;
     }
 }
