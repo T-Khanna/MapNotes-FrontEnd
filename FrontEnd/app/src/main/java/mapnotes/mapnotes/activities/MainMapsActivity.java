@@ -96,12 +96,9 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                 sliderText.setText(timeOf(i));
-                //TODO: This is very hacky way of screen detection, find better way of doing this
-                if (i <= 91 && i >= 3) {
-                    int x = timeSlider.getThumb().getBounds().right;
-                    int width = sliderText.getWidth() / 2;
-                    sliderText.setX(x - width);
-                }
+                int x = timeSlider.getThumb().getBounds().right;
+                int width = sliderText.getWidth() / 4;
+                sliderText.setX(x - width);
             }
 
             @Override
