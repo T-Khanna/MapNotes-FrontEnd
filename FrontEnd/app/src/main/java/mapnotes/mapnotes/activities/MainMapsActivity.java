@@ -26,15 +26,21 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import mapnotes.mapnotes.NoteDisplayActivity;
 import mapnotes.mapnotes.R;
 import mapnotes.mapnotes.Server;
+import mapnotes.mapnotes.data_classes.DateAndTime;
 import mapnotes.mapnotes.data_classes.Function;
 import mapnotes.mapnotes.data_classes.Note;
+import mapnotes.mapnotes.data_classes.Time;
 
 public class MainMapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -47,6 +53,8 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
     private final int REQUEST_ACCESS_LOCATION = 0;
     private Marker lastMarker = null;
     private Map<LatLng, Note> notes;
+    private DateAndTime selectedDate = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +72,8 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         Calendar cal = Calendar.getInstance();
         timeSlider.setProgress(cal.get(Calendar.HOUR_OF_DAY) * 4);
         mapFragment.getMapAsync(this);
+
+        selectedDate = new DateAndTime(cal);
 
         server = new Server(this);
 
@@ -114,13 +124,21 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                //Request new locations
-                server.getStringRequest("", new Function<String>() {
-                    @Override
-                    public void run(String input) {
-                        new AlertDialog.Builder(MainMapsActivity.this).setMessage("Got response from server: " + input).create().show();
-                    }
-                });
+                //Request new locations, sending the time required in UTC format
+                JSONObject params = new JSONObject();
+                Time selectedTime = new Time(getSelectedHour(seekBar.getProgress()), seekBar.getProgress());
+                selectedDate.setTime(selectedTime);
+                try {
+                    params.put("time", selectedDate.toString());
+                    server.getJSONRequest("", params, new Function<JSONObject>() {
+                        @Override
+                        public void run(JSONObject input) {
+                            //TODO: handle response
+                        }
+                    });
+                } catch (JSONException e) {
+
+                }
                 sliderText.setVisibility(View.GONE);
             }
         });
@@ -156,9 +174,17 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
     }
 
 
+    private int getSelectedHour(int i) {
+        return i / 4;
+    }
+
+    private int getSelectedMinute(int i) {
+        return (i % 4) * 15;
+    }
+
     private String timeOf(int i) {
-        int hour = i / 4;
-        int minute = (i % 4) * 15;
+        int hour = getSelectedHour(i);
+        int minute = getSelectedMinute(i);
         String hourText = hour < 10 ? "0" + hour : String.valueOf(hour);
         String minText = minute < 10 ? "0" + minute : String.valueOf(minute);
         return hourText + ":" + minText;
@@ -229,14 +255,18 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 Note newNote = data.getParcelableExtra("note");
-                Map<String, String> params = new HashMap<>();
-                params.put("note_id", "15");
-                server.postStringRequest("", params, new Function<String>() {
-                    @Override
-                    public void run(String input) {
-                        new AlertDialog.Builder(MainMapsActivity.this).setMessage("Got response from server: " + input).create().show();
-                    }
-                });
+                JSONObject params = new JSONObject();
+                try {
+                    params.put("note_id", "15");
+                    server.postJSONRequest("", params, new Function<JSONObject>() {
+                        @Override
+                        public void run(JSONObject input) {
+                            new AlertDialog.Builder(MainMapsActivity.this).setMessage("Got response from server: " + input).create().show();
+                        }
+                    });
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
                 //Add note to class variable notes
                 notes.put(newNote.getLocation(), newNote);
 

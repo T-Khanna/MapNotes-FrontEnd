@@ -6,6 +6,10 @@ import android.os.Parcelable;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -17,13 +21,15 @@ public class Note implements Parcelable {
     private LatLng location = null;
     private DateAndTime time = null;
     private DateAndTime endTime = null;
+    private Integer id = null;
 
-    public Note(String title, String description, LatLng location, DateAndTime time, DateAndTime endTime) {
+    public Note(String title, String description, LatLng location, DateAndTime time, DateAndTime endTime, int id) {
         this.title = title;
         this.description = description;
         this.location = location;
         this.time = time;
         this.endTime = endTime;
+        this.id = id;
     }
 
     public Note() {}
@@ -92,6 +98,7 @@ public class Note implements Parcelable {
         bundle.putSerializable("endTime", endTime);
         bundle.putString("title", title);
         bundle.putString("description", description);
+        bundle.putInt("id", id);
 
         parcel.writeBundle(bundle);
         parcel.writeParcelable(location, i);
@@ -103,6 +110,7 @@ public class Note implements Parcelable {
         description = bundle.getString("description");
         time = (DateAndTime) bundle.getSerializable("time");
         endTime = (DateAndTime) bundle.getSerializable("endTime");
+        id = bundle.getInt("id");
 
         location = in.readParcelable(LatLng.class.getClassLoader());
     }
@@ -117,4 +125,38 @@ public class Note implements Parcelable {
             return new Note[size];
         }
     };
+
+    //JSON Section ---------------------------------------------------------------------------------
+
+    public JSONObject toJson() {
+        JSONObject jNote = new JSONObject();
+        try {
+            jNote.put("title", title);
+            jNote.put("comment", description);
+            jNote.put("id", id);
+            jNote.put("start_time", time.toString());
+            jNote.put("end_time", endTime.toString());
+            jNote.put("latitude", location.latitude);
+            jNote.put("longitude", location.longitude);
+            return jNote;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public Note(JSONObject object) {
+        try {
+            this.id = object.getInt("id");
+            this.title = object.getString("title");
+            this.description = object.getString("comment");
+            double latitude = object.getDouble("latitude");
+            double longitude = object.getDouble("longitude");
+            location = new LatLng(latitude, longitude);
+            time = DateAndTime.fromString(object.getString("start_time"));
+            endTime = DateAndTime.fromString(object.getString("end_time"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 }

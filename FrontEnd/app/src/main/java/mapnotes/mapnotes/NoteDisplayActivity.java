@@ -1,15 +1,10 @@
 package mapnotes.mapnotes;
 
-import android.app.Activity;
-import android.app.DialogFragment;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -19,10 +14,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.vision.text.Text;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 import mapnotes.mapnotes.data_classes.DateAndTime;
@@ -115,7 +108,7 @@ public class NoteDisplayActivity extends FragmentActivity implements OnMapReadyC
     }
 
     private void updateTimes(TextView dateView, TextView timeView, DateAndTime time) {
-        Date d = new Date(time.getDate());
+        Date d = time.getDate();
         SimpleDateFormat dateFormat = new SimpleDateFormat("E, MMM dd, YYYY");
         String date = dateFormat.format(d);
         dateView.setText(date);

@@ -6,10 +6,12 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Map;
@@ -51,7 +53,7 @@ public class Server {
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                //TODO: Error response
+                error.printStackTrace();
             }
         }) {
             @Override
@@ -68,17 +70,17 @@ public class Server {
         genericStringRequest(Request.Method.POST, serverLocation, params, onResponse);
     }
 
-    public void getJSONRequest(String serverLocation, final Function<JSONObject> onResponse) {
+    public void getJSONRequest(String serverLocation, JSONObject params, final Function<JSONObject> onResponse) {
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, IP + serverLocation,
-                null, new Response.Listener<JSONObject>() {
+                params, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-            onResponse.run(response);
+                onResponse.run(response);
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                //TODO: Error response
+                error.printStackTrace();
             }
         });
 
@@ -86,7 +88,41 @@ public class Server {
         requests.start();
     }
 
+    public void postJSONRequest(String serverLocation, JSONObject params, final Function<JSONObject> onResponse) {
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, IP + serverLocation,
+                params, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                onResponse.run(response);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+            }
+        });
 
+        requests.add(request);
+        requests.start();
+    }
+
+    public void getJSONArrayRequest(String serverLocation, JSONArray params, final Function<JSONArray> onResponse) {
+        JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, IP + serverLocation,
+                params, new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray response) {
+                onResponse.run(response);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+            }
+        });
+
+        requests.add(request);
+        requests.start();
+    }
 
 
 

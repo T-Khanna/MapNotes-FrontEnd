@@ -134,7 +134,7 @@
             android:layout_margin="8dp"
             android:id="@+id/location_text"
             android:layout_toRightOf="@+id/pin_icon"
-            android:text="Location: (Tap map to change)"/>
+            android:text="Location:"/>
 
     </RelativeLayout>
 

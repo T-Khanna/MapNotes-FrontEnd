@@ -169,9 +169,9 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
             public void onClick(View view) {
                 DialogFragment newFragment = new DatePickerFragment();
                 Bundle arguments = new Bundle();
-                arguments.putSerializable("callback", new Function<Long>() {
+                arguments.putSerializable("callback", new Function<Date>() {
                     @Override
-                    public void run(Long input) {
+                    public void run(Date input) {
                         thisNote.getTime().setDate(input);
                         updateTimes(startDate, startTime, thisNote.getTime());
                     }
@@ -187,9 +187,9 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
             public void onClick(View view) {
                 DialogFragment newFragment = new DatePickerFragment();
                 Bundle arguments = new Bundle();
-                arguments.putSerializable("callback", new Function<Long>() {
+                arguments.putSerializable("callback", new Function<Date>() {
                     @Override
-                    public void run(Long input) {
+                    public void run(Date input) {
                         thisNote.getEndTime().setDate(input);
                         updateTimes(endDate, endTime, thisNote.getEndTime());
                     }
@@ -223,7 +223,7 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
     }
 
     private void updateTimes(TextView dateView, TextView timeView, DateAndTime time) {
-        Date d = new Date(time.getDate());
+        Date d = time.getDate();
         SimpleDateFormat dateFormat = new SimpleDateFormat("E, MMM dd, YYYY");
         String date = dateFormat.format(d);
         dateView.setText(date);

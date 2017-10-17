@@ -16,13 +16,13 @@ import mapnotes.mapnotes.data_classes.Function;
 public class DatePickerFragment extends DialogFragment
         implements android.app.DatePickerDialog.OnDateSetListener {
 
-    Function<Long> callback;
+    Function<Date> callback;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         // Use the current time as the default values for the picker
 
-        callback = (Function<Long>) getArguments().getSerializable("callback");
+        callback = (Function<Date>) getArguments().getSerializable("callback");
 
         // Create a new instance of TimePickerDialog and return it
         android.app.DatePickerDialog dialog = new android.app.DatePickerDialog(getActivity());
@@ -32,7 +32,7 @@ public class DatePickerFragment extends DialogFragment
 
     public void onDateSet(DatePicker view, int year, int month, int day) {
         Date date = new Date(year - 1900, month, day);
-        callback.run(date.getTime());
+        callback.run(date);
     }
 
 

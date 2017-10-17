@@ -1,7 +1,11 @@
 package mapnotes.mapnotes.data_classes;
 
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * Created by Thomas on 14/10/2017.
@@ -9,7 +13,7 @@ import java.util.Calendar;
 
 public class DateAndTime implements Serializable {
     private Time time;
-    private long date;
+    private Date date;
 
     public Time getTime() {
         return time;
@@ -19,15 +23,15 @@ public class DateAndTime implements Serializable {
         this.time = time;
     }
 
-    public long getDate() {
+    public Date getDate() {
         return date;
     }
 
-    public void setDate(long date) {
+    public void setDate(Date date) {
         this.date = date;
     }
 
-    public DateAndTime(Time time, long date) {
+    public DateAndTime(Time time, Date date) {
         this.time = time;
         this.date = date;
     }
@@ -39,14 +43,14 @@ public class DateAndTime implements Serializable {
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.MILLISECOND, 0);
         time = new Time(hour, min);
-        date = cal.getTimeInMillis();
+        date = cal.getTime();
     }
 
 
 
     public long getMillis() {
         Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(date);
+        cal.setTime(date);
         cal.set(Calendar.HOUR_OF_DAY, time.getHourOfDay());
         cal.set(Calendar.MINUTE, time.getMinute());
         return cal.getTimeInMillis();
@@ -58,9 +62,9 @@ public class DateAndTime implements Serializable {
      * @return
      */
     public boolean after(DateAndTime otherTime) {
-        if (date > otherTime.getDate()) {
+        if (date.compareTo(otherTime.getDate()) >= 1) {
             return true;
-        } else if (otherTime.getDate() == date){
+        } else if (otherTime.getDate().compareTo(date) == 0){
             if (time.getHourOfDay() > otherTime.getTime().getHourOfDay()) {
                 return true;
             } else if (otherTime.getTime().getHourOfDay() == time.getHourOfDay()){
@@ -68,6 +72,31 @@ public class DateAndTime implements Serializable {
             }
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, time.getHourOfDay());
+        cal.set(Calendar.MINUTE, time.getMinute());
+        cal.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Date time = cal.getTime();
+        SimpleDateFormat outputFmt = new SimpleDateFormat("d-M-yyyy HH:mm ZZZ");
+        return outputFmt.format(time);
+    }
+
+    public static DateAndTime fromString(String utc) {
+        SimpleDateFormat inputFmt = new SimpleDateFormat("d-M-yyyy HH:mm ZZZ");
+        try {
+            Date d = inputFmt.parse(utc);
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(d);
+            return new DateAndTime(calendar);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }
