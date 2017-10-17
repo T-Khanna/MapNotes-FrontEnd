@@ -98,7 +98,9 @@ public class Note implements Parcelable {
         bundle.putSerializable("endTime", endTime);
         bundle.putString("title", title);
         bundle.putString("description", description);
-        bundle.putInt("id", id);
+        if (id != null) {
+            bundle.putInt("id", id);
+        }
 
         parcel.writeBundle(bundle);
         parcel.writeParcelable(location, i);
