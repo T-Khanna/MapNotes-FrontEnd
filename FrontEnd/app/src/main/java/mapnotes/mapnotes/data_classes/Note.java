@@ -133,13 +133,13 @@ public class Note implements Parcelable {
     public JSONObject toJson() {
         JSONObject jNote = new JSONObject();
         try {
-            jNote.put("title", title);
-            jNote.put("comment", description);
-            jNote.put("id", id);
-            jNote.put("start_time", time.toString());
-            jNote.put("end_time", endTime.toString());
-            jNote.put("latitude", location.latitude);
-            jNote.put("longitude", location.longitude);
+            jNote.put("Title", title);
+            jNote.put("Comment", description);
+            jNote.put("Id", id);
+            jNote.put("Start_time", time.toString());
+            jNote.put("End_time", endTime.toString());
+            jNote.put("Latitude", location.latitude);
+            jNote.put("Longitude", location.longitude);
             return jNote;
         } catch (JSONException e) {
             e.printStackTrace();
@@ -149,14 +149,14 @@ public class Note implements Parcelable {
 
     public Note(JSONObject object) {
         try {
-            this.id = object.getInt("id");
-            this.title = object.getString("title");
-            this.description = object.getString("comment");
-            double latitude = object.getDouble("latitude");
-            double longitude = object.getDouble("longitude");
+            this.id = object.getInt("Id");
+            this.title = object.getString("Title");
+            this.description = object.getString("Comment");
+            double latitude = object.getDouble("Latitude");
+            double longitude = object.getDouble("Longitude");
             location = new LatLng(latitude, longitude);
-            time = DateAndTime.fromString(object.getString("start_time"));
-            endTime = DateAndTime.fromString(object.getString("end_time"));
+            time = DateAndTime.fromString(object.getString("Start_time"));
+            endTime = DateAndTime.fromString(object.getString("End_time"));
         } catch (JSONException e) {
             e.printStackTrace();
         }
