@@ -26,6 +26,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -130,10 +131,25 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
                 selectedDate.setTime(selectedTime);
                 try {
                     params.put("time", selectedDate.toString());
-                    server.getJSONRequest("", params, new Function<JSONObject>() {
+                    server.getJSONRequest("allnotes", params, new Function<JSONObject>() {
                         @Override
                         public void run(JSONObject input) {
-                            //TODO: handle response
+                            try {
+                                if (input.has("Notes")) {
+                                    mMap.clear();
+                                    Map<LatLng, Note> newNotes = new HashMap<LatLng, Note>();
+                                    JSONArray array = input.getJSONArray("Notes");
+                                    for (int i = 0; i < array.length(); i++) {
+                                        JSONObject jsonNote = array.getJSONObject(i);
+                                        Note note = new Note(jsonNote);
+                                        newNotes.put(note.getLocation(), note);
+                                        mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
+                                    }
+                                    notes = newNotes;
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
                         }
                     });
                 } catch (JSONException e) {
@@ -255,18 +271,13 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 Note newNote = data.getParcelableExtra("note");
-                JSONObject params = new JSONObject();
-                try {
-                    params.put("note_id", "15");
-                    server.postJSONRequest("", params, new Function<JSONObject>() {
+                JSONObject params = newNote.toJson();
+                server.postJSONRequest("note", params, new Function<JSONObject>() {
                         @Override
                         public void run(JSONObject input) {
                             new AlertDialog.Builder(MainMapsActivity.this).setMessage("Got response from server: " + input).create().show();
                         }
-                    });
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                });
                 //Add note to class variable notes
                 notes.put(newNote.getLocation(), newNote);
 

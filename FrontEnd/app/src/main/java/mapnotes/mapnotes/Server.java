@@ -33,6 +33,7 @@ public class Server {
         this.context = context;
         requests = Volley.newRequestQueue(context);
 
+        requests.start();
     }
 
     public void getStringRequest(String serverLocation, final Function<String> onResponse) {
@@ -62,7 +63,6 @@ public class Server {
             }
         };
         requests.add(stringRequest);
-        requests.start();
 
     }
 
@@ -85,7 +85,6 @@ public class Server {
         });
 
         requests.add(request);
-        requests.start();
     }
 
     public void postJSONRequest(String serverLocation, JSONObject params, final Function<JSONObject> onResponse) {
@@ -103,7 +102,6 @@ public class Server {
         });
 
         requests.add(request);
-        requests.start();
     }
 
     public void getJSONArrayRequest(String serverLocation, JSONArray params, final Function<JSONArray> onResponse) {
@@ -121,7 +119,6 @@ public class Server {
         });
 
         requests.add(request);
-        requests.start();
     }
 
 
