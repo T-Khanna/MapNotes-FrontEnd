@@ -129,7 +129,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
                 Time selectedTime = new Time(getSelectedHour(seekBar.getProgress()), seekBar.getProgress());
                 selectedDate.setTime(selectedTime);
                 try {
-                    params.put("time", selectedDate.toString());
+                    params.put("Time", selectedDate.toString());
                     server.getJSONRequest("", params, new Function<JSONObject>() {
                         @Override
                         public void run(JSONObject input) {
