@@ -19,6 +19,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -31,6 +32,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import mapnotes.mapnotes.R;
 
@@ -193,13 +195,23 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     }
 
     private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
-        return email.contains("@");
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
 
     private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
-        return password.length() > 4;
+        /* Regex works as follows:
+           (		            # Start of group
+               (?=.*\d)		    #   must contains one digit from 0-9
+               (?=.*[a-z])		#   must contains one lowercase characters
+               (?=.*[A-Z])		#   must contains one uppercase characters
+               (?=.*[@#$%])		#   must contains one special symbols in the list "@#$%"
+                        .		#   match anything with previous condition checking
+                         {6,20}	#   length at least 6 characters and maximum of 20
+           )		            # End of group
+        */
+        String regex = "((?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%]).{6,20})";
+        Pattern pattern = Pattern.compile(regex);
+        return pattern.matcher(password).matches();
     }
 
     /**
