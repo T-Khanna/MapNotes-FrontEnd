@@ -126,14 +126,15 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 //Request new locations, sending the time required in UTC format
-                JSONObject params = new JSONObject();
+                Map<String, String> params = new HashMap<>();
                 Time selectedTime = new Time(getSelectedHour(seekBar.getProgress()), seekBar.getProgress());
                 selectedDate.setTime(selectedTime);
                 try {
-                    params.put("time", selectedDate.toString());
+                    params.put("Time", selectedDate.toString());
                     server.getJSONRequest("allnotes", params, new Function<JSONObject>() {
                         @Override
                         public void run(JSONObject input) {
+                            System.out.println(input);
                             try {
                                 if (input.has("Notes")) {
                                     mMap.clear();
@@ -152,8 +153,8 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
                             }
                         }
                     });
-                } catch (JSONException e) {
-
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
                 sliderText.setVisibility(View.GONE);
             }
@@ -270,11 +271,18 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         if (requestCode == REQUEST_ADD_NOTE) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
-                Note newNote = data.getParcelableExtra("note");
+                final Note newNote = data.getParcelableExtra("note");
                 JSONObject params = newNote.toJson();
-                server.postJSONRequest("note", params, new Function<JSONObject>() {
+                server.postJSONRequest("notes", params, new Function<JSONObject>() {
                         @Override
                         public void run(JSONObject input) {
+                            if (input.has("id")) {
+                                try {
+                                    newNote.setId(input.getInt("id"));
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
                             new AlertDialog.Builder(MainMapsActivity.this).setMessage("Got response from server: " + input).create().show();
                         }
                 });

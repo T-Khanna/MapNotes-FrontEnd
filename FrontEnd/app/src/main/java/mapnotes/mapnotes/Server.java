@@ -1,11 +1,13 @@
 package mapnotes.mapnotes;
 
 import android.content.Context;
+import android.net.Uri;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
@@ -33,6 +35,8 @@ public class Server {
         this.context = context;
         requests = Volley.newRequestQueue(context);
 
+        VolleyLog.DEBUG = true;
+
         requests.start();
     }
 
@@ -45,7 +49,13 @@ public class Server {
     }
 
     private void genericStringRequest(int method, String serverLocation, final Map<String, String> params, final Function<String> onResponse) {
-        StringRequest stringRequest = new StringRequest(method, IP + serverLocation,
+        Uri.Builder builder = Uri.parse(IP + serverLocation).buildUpon();
+        if (method == Request.Method.GET && params != null) {
+            for (Map.Entry<String, String> element : params.entrySet()) {
+                builder.appendQueryParameter(element.getKey(), element.getValue());
+            }
+        }
+        StringRequest stringRequest = new StringRequest(method, builder.build().toString(),
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -58,7 +68,7 @@ public class Server {
             }
         }) {
             @Override
-            public Map<String, String> getParams (){
+            protected Map<String, String> getParams (){
                 return params;
             }
         };
@@ -70,9 +80,15 @@ public class Server {
         genericStringRequest(Request.Method.POST, serverLocation, params, onResponse);
     }
 
-    public void getJSONRequest(String serverLocation, JSONObject params, final Function<JSONObject> onResponse) {
+    public void getJSONRequest(String serverLocation, Map<String, String> params, final Function<JSONObject> onResponse) {
+        Uri.Builder builder = Uri.parse(IP + serverLocation).buildUpon();
+        if (params != null) {
+            for (Map.Entry<String, String> element : params.entrySet()) {
+                builder.appendQueryParameter(element.getKey(), element.getValue());
+            }
+        }
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, IP + serverLocation,
-                params, new Response.Listener<JSONObject>() {
+                null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 onResponse.run(response);
