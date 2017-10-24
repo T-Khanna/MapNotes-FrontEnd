@@ -6,6 +6,12 @@ import android.os.Parcelable;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Calendar;
+import java.util.Date;
+
 /**
  * Class to represent an individual note
  */
@@ -13,24 +19,30 @@ public class Note implements Parcelable {
     private String title = null;
     private String description = null;
     private LatLng location = null;
-    private long time = 0;
-    private long endTime = 0;
+    private DateAndTime time = null;
+    private DateAndTime endTime = null;
+    private Integer id = null;
 
-    public Note(String title, String description, LatLng location, long time, long endTime) {
+    public Note(String title, String description, LatLng location, DateAndTime time, DateAndTime endTime, int id) {
         this.title = title;
         this.description = description;
         this.location = location;
         this.time = time;
         this.endTime = endTime;
+        this.id = id;
     }
 
     public Note() {}
 
-    public long getEndTime() {
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public DateAndTime getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(long endTime) {
+    public void setEndTime(DateAndTime endTime) {
         this.endTime = endTime;
     }
 
@@ -58,20 +70,20 @@ public class Note implements Parcelable {
         this.location = location;
     }
 
-    public long getTime() {
+    public DateAndTime getTime() {
         return time;
     }
 
-    public void setTime(long time) {
+    public void setTime(DateAndTime time) {
         this.time = time;
     }
 
     public boolean isValid() {
         return title != null &&
                 !title.equals("") &&
-                time != 0 &&
-                endTime != 0 &&
-                description != null &&
+                time != null &&
+                endTime != null &&
+                endTime.after(time) &&
                 location != null;
     }
 
@@ -86,10 +98,13 @@ public class Note implements Parcelable {
     public void writeToParcel(Parcel parcel, int i) {
 
         Bundle bundle = new Bundle();
-        bundle.putLong("time", time);
-        bundle.putLong("endTime", endTime);
+        bundle.putSerializable("time", time);
+        bundle.putSerializable("endTime", endTime);
         bundle.putString("title", title);
         bundle.putString("description", description);
+        if (id != null) {
+            bundle.putInt("id", id);
+        }
 
         parcel.writeBundle(bundle);
         parcel.writeParcelable(location, i);
@@ -99,8 +114,9 @@ public class Note implements Parcelable {
         Bundle bundle = in.readBundle();
         title = bundle.getString("title");
         description = bundle.getString("description");
-        time = bundle.getLong("time");
-        endTime = bundle.getLong("endTime");
+        time = (DateAndTime) bundle.getSerializable("time");
+        endTime = (DateAndTime) bundle.getSerializable("endTime");
+        id = bundle.getInt("id");
 
         location = in.readParcelable(LatLng.class.getClassLoader());
     }
@@ -115,4 +131,38 @@ public class Note implements Parcelable {
             return new Note[size];
         }
     };
+
+    //JSON Section ---------------------------------------------------------------------------------
+
+    public JSONObject toJson() {
+        JSONObject jNote = new JSONObject();
+        try {
+            jNote.put("Title", title);
+            jNote.put("Comment", description);
+            jNote.put("Id", id);
+            jNote.put("Start_time", time.toString());
+            jNote.put("End_time", endTime.toString());
+            jNote.put("Latitude", location.latitude);
+            jNote.put("Longitude", location.longitude);
+            return jNote;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public Note(JSONObject object) {
+        try {
+            this.id = object.getInt("Id");
+            this.title = object.getString("Title");
+            this.description = object.getString("Comment");
+            double latitude = object.getDouble("Latitude");
+            double longitude = object.getDouble("Longitude");
+            location = new LatLng(latitude, longitude);
+            time = DateAndTime.fromString(object.getString("Start_time"));
+            endTime = DateAndTime.fromString(object.getString("End_time"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -2,6 +2,7 @@ package mapnotes.mapnotes.activities;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.DialogFragment;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -11,6 +12,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -20,15 +23,27 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.net.URI;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
+import mapnotes.mapnotes.DatePickerFragment;
 import mapnotes.mapnotes.R;
+import mapnotes.mapnotes.TimePickerFragment;
+import mapnotes.mapnotes.data_classes.DateAndTime;
+import mapnotes.mapnotes.data_classes.Function;
 import mapnotes.mapnotes.data_classes.Note;
+import mapnotes.mapnotes.data_classes.Time;
 
 public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     private final Note thisNote = new Note();
+    private TextView startTime;
+    private TextView endTime;
+    private TextView startDate;
+    private TextView endDate;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +79,13 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
             updateUI();
         }
 
+        //Set up local variables
+        Calendar cal = Calendar.getInstance();
+        thisNote.setTime(new DateAndTime(cal));
+
+        cal = Calendar.getInstance();
+        cal.add(Calendar.HOUR_OF_DAY, 1);
+        thisNote.setEndTime(new DateAndTime(cal));
 
         //Set UI listeners
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
@@ -85,9 +107,7 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
                 thisNote.setTitle(title.getText().toString());
                 thisNote.setDescription(description.getText().toString());
                 Calendar cal = Calendar.getInstance();
-                thisNote.setTime(cal.getTimeInMillis());
                 cal.add(Calendar.HOUR_OF_DAY, 1);
-                thisNote.setEndTime(cal.getTimeInMillis());
 
                 if (thisNote.isValid()) {
                     Intent result = new Intent();
@@ -98,7 +118,7 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
             }
         });
 
-        Button cancelButton = findViewById(R.id.cancel_button);
+        ImageView cancelButton = findViewById(R.id.cancel_button);
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -106,6 +126,82 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
                 finish();
             }
         });
+
+        startTime = findViewById(R.id.start_time);
+        startTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DialogFragment newFragment = new TimePickerFragment();
+                Bundle arguments = new Bundle();
+                arguments.putSerializable("callback", new Function<Time>() {
+                    @Override
+                    public void run(Time input) {
+                        thisNote.getTime().setTime(input);
+                        updateTimes(startDate, startTime, thisNote.getTime());
+                    }
+                });
+                newFragment.setArguments(arguments);
+                newFragment.show(getFragmentManager(), "timepicker");
+            }
+        });
+
+        endTime = findViewById(R.id.end_time);
+        endTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DialogFragment newFragment = new TimePickerFragment();
+                Bundle arguments = new Bundle();
+                arguments.putSerializable("callback", new Function<Time>() {
+                    @Override
+                    public void run(Time input) {
+                        thisNote.getEndTime().setTime(input);
+                        updateTimes(endDate, endTime, thisNote.getEndTime());
+                    }
+                });
+                newFragment.setArguments(arguments);
+                newFragment.show(getFragmentManager(), "timepicker");
+            }
+        });
+
+        startDate = findViewById(R.id.start_date);
+        startDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DialogFragment newFragment = new DatePickerFragment();
+                Bundle arguments = new Bundle();
+                arguments.putSerializable("callback", new Function<Date>() {
+                    @Override
+                    public void run(Date input) {
+                        thisNote.getTime().setDate(input);
+                        updateTimes(startDate, startTime, thisNote.getTime());
+                    }
+                });
+                newFragment.setArguments(arguments);
+                newFragment.show(getFragmentManager(), "timepicker");
+            }
+        });
+
+        endDate = findViewById(R.id.end_date);
+        endDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DialogFragment newFragment = new DatePickerFragment();
+                Bundle arguments = new Bundle();
+                arguments.putSerializable("callback", new Function<Date>() {
+                    @Override
+                    public void run(Date input) {
+                        thisNote.getEndTime().setDate(input);
+                        updateTimes(endDate, endTime, thisNote.getEndTime());
+                    }
+                });
+                newFragment.setArguments(arguments);
+                newFragment.show(getFragmentManager(), "timepicker");
+            }
+        });
+
+        updateTimes(startDate, startTime, thisNote.getTime());
+        updateTimes(endDate, endTime, thisNote.getEndTime());
+
     }
 
     @Override
@@ -124,6 +220,15 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
             mMap.setMyLocationEnabled(false);
             mMap.getUiSettings().setMyLocationButtonEnabled(true);
         }
+    }
+
+    private void updateTimes(TextView dateView, TextView timeView, DateAndTime time) {
+        Date d = time.getDate();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("E, MMM dd, YYYY");
+        String date = dateFormat.format(d);
+        dateView.setText(date);
+
+        timeView.setText(time.getTime().toString());
     }
 
 }

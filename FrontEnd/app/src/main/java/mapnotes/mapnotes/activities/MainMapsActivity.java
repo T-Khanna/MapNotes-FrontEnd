@@ -22,17 +22,26 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import mapnotes.mapnotes.NoteDisplayActivity;
 import mapnotes.mapnotes.R;
 import mapnotes.mapnotes.Server;
+import mapnotes.mapnotes.data_classes.DateAndTime;
 import mapnotes.mapnotes.data_classes.Function;
 import mapnotes.mapnotes.data_classes.Note;
+import mapnotes.mapnotes.data_classes.Time;
 
 public class MainMapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -43,6 +52,10 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
     private ImageView addNote;
     private final int REQUEST_ADD_NOTE = 34679;
     private final int REQUEST_ACCESS_LOCATION = 0;
+    private Marker lastMarker = null;
+    private Map<LatLng, Note> notes;
+    private DateAndTime selectedDate = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +74,11 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         timeSlider.setProgress(cal.get(Calendar.HOUR_OF_DAY) * 4);
         mapFragment.getMapAsync(this);
 
+        selectedDate = new DateAndTime(cal);
+
         server = new Server(this);
+
+        generateNotes();
     }
 
 
@@ -96,12 +113,9 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                 sliderText.setText(timeOf(i));
-                //TODO: This is very hacky way of screen detection, find better way of doing this
-                if (i <= 91 && i >= 3) {
-                    int x = timeSlider.getThumb().getBounds().right;
-                    int width = sliderText.getWidth() / 2;
-                    sliderText.setX(x - width);
-                }
+                int x = timeSlider.getThumb().getBounds().right;
+                int width = sliderText.getWidth() / 4;
+                sliderText.setX(x - width);
             }
 
             @Override
@@ -111,14 +125,53 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                //Request new locations
-                server.getStringRequest("", new Function<String>() {
-                    @Override
-                    public void run(String input) {
-                        new AlertDialog.Builder(MainMapsActivity.this).setMessage("Got response from server: " + input).create().show();
-                    }
-                });
+                //Request new locations, sending the time required in UTC format
+                Map<String, String> params = new HashMap<>();
+                Time selectedTime = new Time(getSelectedHour(seekBar.getProgress()), seekBar.getProgress());
+                selectedDate.setTime(selectedTime);
+                try {
+                    params.put("Time", selectedDate.toString());
+                    server.getJSONRequest("allnotes", params, new Function<JSONObject>() {
+                        @Override
+                        public void run(JSONObject input) {
+                            System.out.println(input);
+                            try {
+                                if (input.has("Notes")) {
+                                    mMap.clear();
+                                    Map<LatLng, Note> newNotes = new HashMap<LatLng, Note>();
+                                    JSONArray array = input.getJSONArray("Notes");
+                                    for (int i = 0; i < array.length(); i++) {
+                                        JSONObject jsonNote = array.getJSONObject(i);
+                                        Note note = new Note(jsonNote);
+                                        newNotes.put(note.getLocation(), note);
+                                        mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
+                                    }
+                                    notes = newNotes;
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 sliderText.setVisibility(View.GONE);
+            }
+        });
+
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                if (marker.equals(lastMarker)) {
+                    Intent i = new Intent(MainMapsActivity.this, NoteDisplayActivity.class);
+                    Note note = notes.get(marker.getPosition());
+                    i.putExtra("note", note);
+                    System.out.println("Starting note display");
+                    startActivity(i);
+                }
+                lastMarker = marker;
+                return false;
             }
         });
 
@@ -138,9 +191,17 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
     }
 
 
+    private int getSelectedHour(int i) {
+        return i / 4;
+    }
+
+    private int getSelectedMinute(int i) {
+        return (i % 4) * 15;
+    }
+
     private String timeOf(int i) {
-        int hour = i / 4;
-        int minute = (i % 4) * 15;
+        int hour = getSelectedHour(i);
+        int minute = getSelectedMinute(i);
         String hourText = hour < 10 ? "0" + hour : String.valueOf(hour);
         String minText = minute < 10 ? "0" + minute : String.valueOf(minute);
         return hourText + ":" + minText;
@@ -210,15 +271,24 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         if (requestCode == REQUEST_ADD_NOTE) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
-                Note newNote = data.getParcelableExtra("note");
-                Map<String, String> params = new HashMap<>();
-                params.put("note_id", "15");
-                server.postStringRequest("", params, new Function<String>() {
-                    @Override
-                    public void run(String input) {
-                        new AlertDialog.Builder(MainMapsActivity.this).setMessage("Got response from server: " + input).create().show();
-                    }
+                final Note newNote = data.getParcelableExtra("note");
+                JSONObject params = newNote.toJson();
+                server.postJSONRequest("notes", params, new Function<JSONObject>() {
+                        @Override
+                        public void run(JSONObject input) {
+                            if (input.has("id")) {
+                                try {
+                                    newNote.setId(input.getInt("id"));
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            new AlertDialog.Builder(MainMapsActivity.this).setMessage("Got response from server: " + input).create().show();
+                        }
                 });
+                //Add note to class variable notes
+                notes.put(newNote.getLocation(), newNote);
+
                 mMap.addMarker(new MarkerOptions().position(newNote.getLocation()).title(newNote.getTitle()));
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
             }
@@ -236,5 +306,15 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
             mMap.setMyLocationEnabled(false);
             mMap.getUiSettings().setMyLocationButtonEnabled(true);
         }
+    }
+
+    /**
+     * To be expanded, will take response from server to generate a map of the notes.
+     */
+    private void generateNotes() {
+        Map<LatLng, Note> newNotes = new HashMap<>();
+
+
+        notes = newNotes;
     }
 }

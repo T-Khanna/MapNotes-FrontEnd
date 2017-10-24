@@ -1,33 +1,166 @@
-<RelativeLayout
+<LinearLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <EditText
+    <RelativeLayout
+        android:id="@+id/topPanel"
         android:layout_width="match_parent"
-        android:hint="Title"
-        android:id="@+id/title"
-        android:textSize="23sp"
-        android:layout_alignParentTop="true"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="18dp"
+        android:background="@color/colorPrimary">
+
+        <Button
+            android:id="@+id/save_button"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/title"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="6dp"
+            android:layout_marginRight="-12dp"
+            android:background="@color/colorPrimary"
+            android:text="Save"
+            android:textColor="@color/textColorPrimary"/>
+
+        <ImageView
+            android:id="@+id/cancel_button"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_marginTop="4dp"
+            android:adjustViewBounds="true"
+            android:background="@color/colorPrimary"
+            android:src="@drawable/ic_close"
+            android:textColor="@color/textColorPrimary"/>
+
+        <EditText
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/cancel_button"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:hint="Enter title"
+            android:minLines="1"
+            android:maxLines="2"
+            android:scrollbars="vertical"
+            android:textColor="@color/textColorPrimary"
+            android:textColorHint="@color/textColorPrimary"
+            android:textSize="23sp"/>
+    </RelativeLayout>
+
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
-        android:layout_below="@+id/title"
+        android:minLines="1"
+        android:maxLines="4"
+        android:scrollbars="vertical"
+        android:hint="Enter description"
+        android:textColorHint="@color/black"
         android:id="@+id/description"/>
 
-    <TextView
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:background="@color/textColorSecondary"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"/>
+
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
-        android:layout_below="@+id/description"
-        android:layout_marginRight="8dp"
-        android:id="@+id/location_text"
-        android:text="Location: (Tap to change)"/>
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_access_time"
+            android:id="@+id/time_image"
+            android:layout_alignParentLeft="true"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/time_image">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:id="@+id/start_date"
+                android:layout_marginLeft="16dp"
+                android:layout_marginTop="6dp"
+                android:textSize="18sp"
+                android:layout_marginBottom="24dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentRight="true"
+                android:textSize="18sp"
+                android:layout_marginTop="6dp"
+                android:layout_marginRight="32dp"
+                android:layout_marginBottom="24dp"
+                android:id="@+id/start_time"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/start_date"
+                android:id="@+id/end_date"
+                android:layout_marginLeft="16dp"
+                android:layout_marginBottom="24dp"
+                android:textSize="18sp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_below="@+id/start_time"
+                android:textSize="18sp"
+                android:layout_marginBottom="24dp"
+                android:layout_marginRight="32dp"
+                android:id="@+id/end_time"/>
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:background="@color/textColorSecondary"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_location_on"
+            android:layout_alignParentLeft="true"
+            android:layout_marginRight="8dp"
+            android:id="@+id/pin_icon"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:id="@+id/location_text"
+            android:layout_toRightOf="@+id/pin_icon"
+            android:text="Location: (Tap map to change)"/>
+
+    </RelativeLayout>
 
     <fragment android:id="@+id/map"
               android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -38,28 +171,8 @@
               android:layout_height="match_parent"
               android:layout_marginLeft="8dp"
               android:layout_marginRight="8dp"
-              android:layout_above="@+id/save_button"
-              android:layout_below="@+id/location_text"
+              android:layout_marginBottom="8dp"
               tools:context="mapnotes.mapnotes.activities.AddNoteActivity"/>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Save"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginRight="8dp"
-        android:id="@+id/save_button"/>
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Cancel"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_marginLeft="8dp"
-        android:id="@+id/cancel_button"/>
-
-
-</RelativeLayout>
+</LinearLayout>
 
