@@ -64,6 +64,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
+        server = new Server(this);
         timeSlider = (SeekBar) findViewById(R.id.time_slider);
         sliderText = (TextView) findViewById(R.id.time_text);
         sliderText.setVisibility(View.GONE);
@@ -76,7 +77,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
 
         selectedDate = new DateAndTime(cal);
 
-        server = new Server(this);
+        getNotes(selectedDate);
 
         generateNotes();
     }
@@ -126,36 +127,9 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 //Request new locations, sending the time required in UTC format
-                Map<String, String> params = new HashMap<>();
                 Time selectedTime = new Time(getSelectedHour(seekBar.getProgress()), seekBar.getProgress());
                 selectedDate.setTime(selectedTime);
-                try {
-                    params.put("Time", selectedDate.toString());
-                    server.getJSONRequest("allnotes", params, new Function<JSONObject>() {
-                        @Override
-                        public void run(JSONObject input) {
-                            System.out.println(input);
-                            try {
-                                if (input.has("Notes")) {
-                                    mMap.clear();
-                                    Map<LatLng, Note> newNotes = new HashMap<LatLng, Note>();
-                                    JSONArray array = input.getJSONArray("Notes");
-                                    for (int i = 0; i < array.length(); i++) {
-                                        JSONObject jsonNote = array.getJSONObject(i);
-                                        Note note = new Note(jsonNote);
-                                        newNotes.put(note.getLocation(), note);
-                                        mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
-                                    }
-                                    notes = newNotes;
-                                }
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                getNotes(selectedDate);
                 sliderText.setVisibility(View.GONE);
             }
         });
@@ -190,6 +164,35 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         });
     }
 
+    private  void getNotes(DateAndTime date) {
+        try {
+            String url = "api/notes/\"" + date.toString() + "\"";
+            server.getJSONRequest(url, null, new Function<JSONObject>() {
+                @Override
+                public void run(JSONObject input) {
+                    System.out.println(input);
+                    try {
+                        if (input.has("Notes")) {
+                            mMap.clear();
+                            Map<LatLng, Note> newNotes = new HashMap<>();
+                            JSONArray array = input.getJSONArray("Notes");
+                            for (int i = 0; i < array.length(); i++) {
+                                JSONObject jsonNote = array.getJSONObject(i);
+                                Note note = new Note(jsonNote);
+                                newNotes.put(note.getLocation(), note);
+                                mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
+                            }
+                            notes = newNotes;
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     private int getSelectedHour(int i) {
         return i / 4;
@@ -273,17 +276,16 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
             if (resultCode == RESULT_OK) {
                 final Note newNote = data.getParcelableExtra("note");
                 JSONObject params = newNote.toJson();
-                server.postJSONRequest("notes", params, new Function<JSONObject>() {
+                server.postJSONRequest("api/notes", params, new Function<JSONObject>() {
                         @Override
                         public void run(JSONObject input) {
-                            if (input.has("id")) {
+                            if (input.has("Id")) {
                                 try {
-                                    newNote.setId(input.getInt("id"));
+                                    newNote.setId(input.getInt("Id"));
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
                             }
-                            new AlertDialog.Builder(MainMapsActivity.this).setMessage("Got response from server: " + input).create().show();
                         }
                 });
                 //Add note to class variable notes
