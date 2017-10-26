@@ -2,6 +2,7 @@ package mapnotes.mapnotes.activities;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -9,6 +10,7 @@ import android.location.Location;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -16,7 +18,6 @@ import android.widget.TextView;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -30,12 +31,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import mapnotes.mapnotes.NoteDisplayActivity;
+import mapnotes.mapnotes.DatePickerFragment;
 import mapnotes.mapnotes.R;
 import mapnotes.mapnotes.Server;
 import mapnotes.mapnotes.data_classes.DateAndTime;
@@ -50,11 +52,13 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
     private Server server;
     private TextView sliderText;
     private ImageView addNote;
+    private TextView dateView;
     private final int REQUEST_ADD_NOTE = 34679;
     private final int REQUEST_ACCESS_LOCATION = 0;
     private Marker lastMarker = null;
     private Map<LatLng, Note> notes;
     private DateAndTime selectedDate = null;
+    private final boolean DEBUG = true;
 
 
     @Override
@@ -65,8 +69,8 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         server = new Server(this);
-        timeSlider = (SeekBar) findViewById(R.id.time_slider);
-        sliderText = (TextView) findViewById(R.id.time_text);
+        timeSlider = findViewById(R.id.time_slider);
+        sliderText = findViewById(R.id.time_text);
         sliderText.setVisibility(View.GONE);
         addNote = findViewById(R.id.add_note);
 
@@ -75,7 +79,10 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         timeSlider.setProgress(cal.get(Calendar.HOUR_OF_DAY) * 4);
         mapFragment.getMapAsync(this);
 
+
         selectedDate = new DateAndTime(cal);
+        dateView = findViewById(R.id.date_view);
+        updateDateView();
 
         getNotes(selectedDate);
 
@@ -127,7 +134,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 //Request new locations, sending the time required in UTC format
-                Time selectedTime = new Time(getSelectedHour(seekBar.getProgress()), seekBar.getProgress());
+                Time selectedTime = new Time(getSelectedHour(seekBar.getProgress()), getSelectedMinute(seekBar.getProgress()));
                 selectedDate.setTime(selectedTime);
                 getNotes(selectedDate);
                 sliderText.setVisibility(View.GONE);
@@ -141,7 +148,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
                     Intent i = new Intent(MainMapsActivity.this, NoteDisplayActivity.class);
                     Note note = notes.get(marker.getPosition());
                     i.putExtra("note", note);
-                    System.out.println("Starting note display");
+                    if (DEBUG) Log.d(MainMapsActivity.class.getSimpleName(), "Starting note display");
                     startActivity(i);
                 }
                 lastMarker = marker;
@@ -162,15 +169,38 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
                 });
             }
         });
+
+        dateView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DialogFragment newFragment = new DatePickerFragment();
+                Bundle arguments = new Bundle();
+                arguments.putSerializable("callback", new Function<Date>() {
+                    @Override
+                    public void run(Date input) {
+                        selectedDate.setDate(input);
+                        getNotes(selectedDate);
+                        updateDateView();
+                    }
+                });
+                newFragment.setArguments(arguments);
+                newFragment.show(getFragmentManager(), "timepicker");
+            }
+        });
     }
 
-    private  void getNotes(DateAndTime date) {
+
+    /**
+     * Get the notes from the server available at a specified time period
+     * @param date - The date and time (DateAndTime) to get the notes from the server
+     */
+    private void getNotes(DateAndTime date) {
         try {
             String url = "api/notes/\"" + date.toString() + "\"";
+            if (DEBUG) Log.d(MainMapsActivity.class.getSimpleName(), "Getting notes at: " + selectedDate.toString());
             server.getJSONRequest(url, null, new Function<JSONObject>() {
                 @Override
                 public void run(JSONObject input) {
-                    System.out.println(input);
                     try {
                         if (input.has("Notes")) {
                             mMap.clear();
@@ -318,5 +348,12 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
 
 
         notes = newNotes;
+    }
+
+    private void updateDateView() {
+        Date d = selectedDate.getDate();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("E, MMM dd, YYYY");
+        String date = dateFormat.format(d);
+        dateView.setText(date);
     }
 }

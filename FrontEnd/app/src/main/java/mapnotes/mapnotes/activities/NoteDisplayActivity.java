@@ -1,4 +1,4 @@
-package mapnotes.mapnotes;
+package mapnotes.mapnotes.activities;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -18,6 +18,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import mapnotes.mapnotes.R;
 import mapnotes.mapnotes.data_classes.DateAndTime;
 import mapnotes.mapnotes.data_classes.Note;
 
