@@ -1,5 +1,6 @@
 package mapnotes.mapnotes.activities;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -18,6 +19,9 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -26,18 +30,38 @@ import java.util.Locale;
 
 import mapnotes.mapnotes.R;
 import mapnotes.mapnotes.data_classes.DateAndTime;
+import mapnotes.mapnotes.data_classes.Function;
 import mapnotes.mapnotes.data_classes.Note;
 
 public class NoteDisplayActivity extends FragmentActivity {
 
     private Note thisNote;
-
+    private static final int REQUEST_EDIT_NOTE = 234;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note_display);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+
+        Intent i = getIntent();
+        thisNote = i.getParcelableExtra("note");
+
+        ImageView editButton = findViewById(R.id.edit_button);
+        if (true) { //thisNote.user == user)
+            editButton.setVisibility(View.VISIBLE);
+            editButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent i = new Intent(NoteDisplayActivity.this, AddNoteActivity.class);
+                    i.putExtra("editNote", thisNote);
+                    startActivityForResult(i, REQUEST_EDIT_NOTE);
+                }
+            });
+        } else {
+            editButton.setVisibility(View.GONE);
+        }
+
         initialise();
     }
 
@@ -50,8 +74,6 @@ public class NoteDisplayActivity extends FragmentActivity {
         //Initial UI settings
 
         //Try and find location to zoom into and set initial marker
-        Intent i = getIntent();
-        thisNote = (Note) i.getParcelableExtra("note");
 
         if (thisNote != null) {
             Geocoder geocoder;
@@ -98,6 +120,9 @@ public class NoteDisplayActivity extends FragmentActivity {
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Intent result = new Intent();
+                result.putExtra("note", thisNote);
+                setResult(Activity.RESULT_OK, result);
                 finish();
             }
         });
@@ -127,5 +152,25 @@ public class NoteDisplayActivity extends FragmentActivity {
         dateView.setText(date);
 
         timeView.setText(time.getTime().toString());
+    }
+
+    @Override
+    public void onPause() {
+        Intent result = new Intent();
+        result.putExtra("note", thisNote);
+        setResult(Activity.RESULT_OK, result);
+        super.onPause();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == REQUEST_EDIT_NOTE) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                thisNote = data.getParcelableExtra("note");
+                initialise();
+            }
+        }
     }
 }

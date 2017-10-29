@@ -54,6 +54,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
     private ImageView addNote;
     private TextView dateView;
     private final int REQUEST_ADD_NOTE = 34679;
+    private final int REQUEST_EDIT_NOTE = 34680;
     private final int REQUEST_ACCESS_LOCATION = 0;
     private Marker lastMarker = null;
     private Map<LatLng, Note> notes;
@@ -146,10 +147,11 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
             public boolean onMarkerClick(Marker marker) {
                 if (marker.equals(lastMarker)) {
                     Intent i = new Intent(MainMapsActivity.this, NoteDisplayActivity.class);
-                    Note note = notes.get(marker.getPosition());
+                    Note note = notes.remove(marker.getPosition());
                     i.putExtra("note", note);
                     if (DEBUG) Log.d(MainMapsActivity.class.getSimpleName(), "Starting note display");
-                    startActivity(i);
+                    marker.remove();
+                    startActivityForResult(i, REQUEST_EDIT_NOTE);
                 }
                 lastMarker = marker;
                 return false;
@@ -307,17 +309,27 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
                 final Note newNote = data.getParcelableExtra("note");
                 JSONObject params = newNote.toJson();
                 server.postJSONRequest("api/notes", params, new Function<JSONObject>() {
-                        @Override
-                        public void run(JSONObject input) {
-                            if (input.has("Id")) {
-                                try {
-                                    newNote.setId(input.getInt("Id"));
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
+                    @Override
+                    public void run(JSONObject input) {
+                        if (input.has("Id")) {
+                            try {
+                                newNote.setId(input.getInt("Id"));
+                            } catch (JSONException e) {
+                                e.printStackTrace();
                             }
                         }
+                    }
                 });
+                //Add note to class variable notes
+                notes.put(newNote.getLocation(), newNote);
+
+                mMap.addMarker(new MarkerOptions().position(newNote.getLocation()).title(newNote.getTitle()));
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
+            }
+        } else if (requestCode == REQUEST_EDIT_NOTE) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                final Note newNote = data.getParcelableExtra("note");
                 //Add note to class variable notes
                 notes.put(newNote.getLocation(), newNote);
 

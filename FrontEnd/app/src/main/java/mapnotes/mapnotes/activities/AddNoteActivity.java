@@ -6,6 +6,7 @@ import android.app.DialogFragment;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -38,7 +39,7 @@ import mapnotes.mapnotes.data_classes.Time;
 public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    private final Note thisNote = new Note();
+    private Note thisNote = new Note();
     private TextView startTime;
     private TextView endTime;
     private TextView startDate;
@@ -69,14 +70,9 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
 
         //Try and find location to zoom into and set initial marker
         Intent i = getIntent();
-        Location location = i.getParcelableExtra("location");
-
-        if (location != null) {
-            LatLng marker = new LatLng(location.getLatitude(), location.getLongitude());
-            mMap.addMarker(new MarkerOptions().position(marker));
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker, 15));
-            thisNote.setLocation(marker);
-            updateUI();
+        Location location = null;
+        if (i.hasExtra("location")) {
+            location = i.getParcelableExtra("location");
         }
 
         //Set up local variables
@@ -199,8 +195,28 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
             }
         });
 
+        //Check if we are editing a note
+        if (i.hasExtra("editNote")) {
+            thisNote = i.getParcelableExtra("editNote");
+            location = new Location(LocationManager.GPS_PROVIDER);
+            location.setLatitude(thisNote.getLocation().latitude);
+            location.setLongitude(thisNote.getLocation().longitude);
+
+            title.setText(thisNote.getTitle());
+            description.setText(thisNote.getDescription());
+        }
+
+
         updateTimes(startDate, startTime, thisNote.getTime());
         updateTimes(endDate, endTime, thisNote.getEndTime());
+
+        if (location != null) {
+            LatLng marker = new LatLng(location.getLatitude(), location.getLongitude());
+            mMap.addMarker(new MarkerOptions().position(marker));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker, 15));
+            thisNote.setLocation(marker);
+            updateUI();
+        }
 
     }
 
