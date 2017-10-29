@@ -47,7 +47,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activities.MainMapsActivity"/>
         </activity>
-        <activity android:name=".NoteDisplayActivity">
+        <activity android:name=".activities.NoteDisplayActivity">
         </activity>
         <activity
             android:name=".activities.LoginActivity"

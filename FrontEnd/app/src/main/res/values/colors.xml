@@ -6,5 +6,6 @@
     <color name="textColorPrimary">#ffffff</color>
     <color name="textColorSecondary">#bdbdbd</color>
     <color name="black">#000000</color>
+    <color name="highlightColor">#00bcd4</color>
 
 </resources>

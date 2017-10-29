@@ -34,6 +34,10 @@ public class Note implements Parcelable {
 
     public Note() {}
 
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
     public DateAndTime getEndTime() {
         return endTime;
     }
