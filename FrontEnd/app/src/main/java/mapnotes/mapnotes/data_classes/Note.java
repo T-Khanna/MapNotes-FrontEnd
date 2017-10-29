@@ -11,6 +11,10 @@ import org.json.JSONObject;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Class to represent an individual note
@@ -22,14 +26,17 @@ public class Note implements Parcelable {
     private DateAndTime time = null;
     private DateAndTime endTime = null;
     private Integer id = null;
+    private Set<String> tags = new HashSet<>();
 
-    public Note(String title, String description, LatLng location, DateAndTime time, DateAndTime endTime, int id) {
+    public Note(String title, String description, LatLng location, DateAndTime time,
+                DateAndTime endTime, int id, Set<String> tags) {
         this.title = title;
         this.description = description;
         this.location = location;
         this.time = time;
         this.endTime = endTime;
         this.id = id;
+        this.tags = tags;
     }
 
     public Note() {}
@@ -78,6 +85,22 @@ public class Note implements Parcelable {
         this.time = time;
     }
 
+    public boolean addTag(String tag) {
+        return tags.add(tag);
+    }
+
+    public void removeTag(String tag) {
+        tags.remove(tag);
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public boolean hasTag(String tag) {
+        return tags.contains(tag);
+    }
+
     public boolean isValid() {
         return title != null &&
                 !title.equals("") &&
@@ -105,6 +128,7 @@ public class Note implements Parcelable {
         if (id != null) {
             bundle.putInt("id", id);
         }
+        bundle.putStringArray("tags", tags.toArray(new String[0]));
 
         parcel.writeBundle(bundle);
         parcel.writeParcelable(location, i);
@@ -117,7 +141,10 @@ public class Note implements Parcelable {
         time = (DateAndTime) bundle.getSerializable("time");
         endTime = (DateAndTime) bundle.getSerializable("endTime");
         id = bundle.getInt("id");
-
+        String[] tags = bundle.getStringArray("tags");
+        for (String tag : tags) {
+            this.tags.add(tag);
+        }
         location = in.readParcelable(LatLng.class.getClassLoader());
     }
 
@@ -134,6 +161,7 @@ public class Note implements Parcelable {
 
     //JSON Section ---------------------------------------------------------------------------------
 
+    //TODO ADD TAGS TO JSON
     public JSONObject toJson() {
         JSONObject jNote = new JSONObject();
         try {

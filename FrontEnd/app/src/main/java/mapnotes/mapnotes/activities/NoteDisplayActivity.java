@@ -25,9 +25,11 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
+import co.lujun.androidtagview.TagContainerLayout;
 import mapnotes.mapnotes.R;
 import mapnotes.mapnotes.data_classes.DateAndTime;
 import mapnotes.mapnotes.data_classes.Function;
@@ -102,10 +104,13 @@ public class NoteDisplayActivity extends FragmentActivity {
                         }
                     });
                 }
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            //Tags
+            TagContainerLayout tagContainerLayout = findViewById(R.id.tag_view);
+            tagContainerLayout.setTags(new LinkedList<String>(thisNote.getTags()));
         } else {
             finish();
         }
@@ -170,6 +175,8 @@ public class NoteDisplayActivity extends FragmentActivity {
             if (resultCode == RESULT_OK) {
                 thisNote = data.getParcelableExtra("note");
                 initialise();
+
+                //TODO: Add server update
             }
         }
     }

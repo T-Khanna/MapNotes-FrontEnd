@@ -10,6 +10,7 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -27,7 +28,11 @@ import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
+import co.lujun.androidtagview.TagContainerLayout;
+import co.lujun.androidtagview.TagView;
 import mapnotes.mapnotes.DatePickerFragment;
 import mapnotes.mapnotes.R;
 import mapnotes.mapnotes.TimePickerFragment;
@@ -44,7 +49,7 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
     private TextView endTime;
     private TextView startDate;
     private TextView endDate;
-
+    private List<String> tags = new LinkedList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -195,6 +200,45 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
             }
         });
 
+
+        //Tags
+        final EditText tagText = findViewById(R.id.add_tag_text);
+        Button addTag = findViewById(R.id.add_tag);
+        final TagContainerLayout tagContainerLayout = findViewById(R.id.tag_view);
+
+        addTag.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String newTag = tagText.getText().toString().trim();
+                if (thisNote.addTag(newTag)) {
+                    tags.add(newTag);
+                }
+                tagContainerLayout.setTags(tags);
+            }
+        });
+
+        tagContainerLayout.setOnTagClickListener(new TagView.OnTagClickListener() {
+
+            @Override
+            public void onTagClick(int position, String text) {
+
+            }
+
+            @Override
+            public void onTagLongClick(int position, String text) {
+
+            }
+
+            @Override
+            public void onTagCrossClick(int position) {
+                String tagToRemove = tags.get(position);
+                thisNote.removeTag(tagToRemove);
+                Log.d(AddNoteActivity.class.getSimpleName(), "Removing tag: " + tagToRemove);
+                tags.remove(position);
+                tagContainerLayout.removeTag(position);
+            }
+        });
+
         //Check if we are editing a note
         if (i.hasExtra("editNote")) {
             thisNote = i.getParcelableExtra("editNote");
@@ -204,6 +248,9 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
 
             title.setText(thisNote.getTitle());
             description.setText(thisNote.getDescription());
+
+            tags = new LinkedList<>(thisNote.getTags());
+            tagContainerLayout.setTags(tags);
         }
 
 
