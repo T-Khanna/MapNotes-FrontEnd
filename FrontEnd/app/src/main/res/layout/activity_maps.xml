@@ -4,30 +4,45 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <fragment android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+              android:name="com.google.android.gms.maps.SupportMapFragment"
+              xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              tools:context=".activities.MainMapsActivity"/>
+
+    <android.support.v4.widget.SwipeRefreshLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".activities.MainMapsActivity"/>
+        android:id="@+id/swipe_refresh"
+        android:layout_height="130dp">
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_alignParentTop="true"
+            android:layout_height="wrap_content">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_add"
+                    android:id="@+id/dummy_icon"
+                    android:visibility="invisible"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentRight="true"/>
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_add"
-        android:id="@+id/dummy_icon"
-        android:visibility="invisible"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"/>
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_add"
+                    android:id="@+id/add_note"
+                    android:padding="7dp"
+                    android:layout_below="@+id/dummy_icon"
+                    android:layout_alignParentRight="true"/>
+            </RelativeLayout>
+        </ScrollView>
+    </android.support.v4.widget.SwipeRefreshLayout>
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_add"
-        android:id="@+id/add_note"
-        android:padding="7dp"
-        android:layout_below="@+id/dummy_icon"
-        android:layout_alignParentRight="true"/>
 
     <TextView
         android:layout_width="wrap_content"

@@ -10,6 +10,7 @@ import android.location.Location;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -60,6 +61,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
     private Map<LatLng, Note> notes;
     private DateAndTime selectedDate = null;
     private final boolean DEBUG = true;
+    private SwipeRefreshLayout refresh;
 
 
     @Override
@@ -189,6 +191,15 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
                 newFragment.show(getFragmentManager(), "timepicker");
             }
         });
+
+        refresh = findViewById(R.id.swipe_refresh);
+        refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                getNotes(selectedDate);
+            }
+        });
+
     }
 
 
@@ -215,6 +226,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
                                 mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
                             }
                             notes = newNotes;
+                            refresh.setRefreshing(false);
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
