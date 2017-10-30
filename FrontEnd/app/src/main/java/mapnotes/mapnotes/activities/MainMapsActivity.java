@@ -36,6 +36,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import mapnotes.mapnotes.DatePickerFragment;
@@ -58,7 +60,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
     private final int REQUEST_EDIT_NOTE = 34680;
     private final int REQUEST_ACCESS_LOCATION = 0;
     private Marker lastMarker = null;
-    private Map<LatLng, Note> notes;
+    private Map<Note, Marker> notes = new HashMap<>();
     private DateAndTime selectedDate = null;
     private final boolean DEBUG = true;
     private SwipeRefreshLayout refresh;
@@ -88,8 +90,6 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         updateDateView();
 
         getNotes(selectedDate);
-
-        generateNotes();
     }
 
 
@@ -149,7 +149,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
             public boolean onMarkerClick(Marker marker) {
                 if (marker.equals(lastMarker)) {
                     Intent i = new Intent(MainMapsActivity.this, NoteDisplayActivity.class);
-                    Note note = notes.remove(marker.getPosition());
+                    Note note = (Note) marker.getTag();
                     i.putExtra("note", note);
                     if (DEBUG) Log.d(MainMapsActivity.class.getSimpleName(), "Starting note display");
                     marker.remove();
@@ -217,13 +217,14 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
                     try {
                         if (input.has("Notes")) {
                             mMap.clear();
-                            Map<LatLng, Note> newNotes = new HashMap<>();
+                            Map<Note, Marker> newNotes = new HashMap<>();
                             JSONArray array = input.getJSONArray("Notes");
                             for (int i = 0; i < array.length(); i++) {
                                 JSONObject jsonNote = array.getJSONObject(i);
                                 Note note = new Note(jsonNote);
-                                newNotes.put(note.getLocation(), note);
-                                mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
+                                Marker marker = mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
+                                marker.setTag(note);
+                                newNotes.put(note, marker);
                             }
                             notes = newNotes;
                             refresh.setRefreshing(false);
@@ -332,20 +333,22 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
                         }
                     }
                 });
-                //Add note to class variable notes
-                notes.put(newNote.getLocation(), newNote);
 
-                mMap.addMarker(new MarkerOptions().position(newNote.getLocation()).title(newNote.getTitle()));
+                Marker marker = mMap.addMarker(new MarkerOptions().position(newNote.getLocation()).title(newNote.getTitle()));
+                marker.setTag(newNote);
+                notes.put(newNote, marker);
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
             }
         } else if (requestCode == REQUEST_EDIT_NOTE) {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 final Note newNote = data.getParcelableExtra("note");
-                //Add note to class variable notes
-                notes.put(newNote.getLocation(), newNote);
 
-                mMap.addMarker(new MarkerOptions().position(newNote.getLocation()).title(newNote.getTitle()));
+                Marker marker = mMap.addMarker(new MarkerOptions().position(newNote.getLocation()).title(newNote.getTitle()));
+                marker.setTag(newNote);
+
+                //Add note to class variable notes
+                notes.put(newNote, marker);
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
             }
         }
@@ -364,20 +367,44 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         }
     }
 
-    /**
-     * To be expanded, will take response from server to generate a map of the notes.
-     */
-    private void generateNotes() {
-        Map<LatLng, Note> newNotes = new HashMap<>();
-
-
-        notes = newNotes;
-    }
-
     private void updateDateView() {
         Date d = selectedDate.getDate();
         SimpleDateFormat dateFormat = new SimpleDateFormat("E, MMM dd, YYYY");
         String date = dateFormat.format(d);
         dateView.setText(date);
+    }
+
+    /**
+     * Given a list of tags to filter by, only show notes that have those tags
+     * @param filterTags
+     */
+    private void filter(List<String> filterTags) {
+        Map<Note, Marker> newNotes = new HashMap<>();
+        for (Map.Entry entry : notes.entrySet()) {
+            Note note = (Note) entry.getKey();
+            boolean found = false;
+            for (String tag : filterTags) {
+                if (note.hasTag(tag)) {
+                    found = true;
+                    break;
+                }
+            }
+            Marker marker = (Marker) entry.getValue();
+            if (!found) {
+                //If we didn't find a valid tag for filtering, remove marker
+                if (marker != null) {
+                    marker.remove();
+                }
+                newNotes.put(note, null);
+            } else {
+                //If we should show this note, make sure the marker for it exists
+                if (marker == null) {
+                    marker = mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
+                    marker.setTag(note);
+                }
+                newNotes.put(note, marker);
+            }
+        }
+        notes = newNotes;
     }
 }
