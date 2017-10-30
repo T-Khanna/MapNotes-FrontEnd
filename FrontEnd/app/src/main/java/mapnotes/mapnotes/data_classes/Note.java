@@ -27,9 +27,10 @@ public class Note implements Parcelable {
     private DateAndTime endTime = null;
     private Integer id = null;
     private Set<String> tags = new HashSet<>();
+    private String userEmail = "";
 
     public Note(String title, String description, LatLng location, DateAndTime time,
-                DateAndTime endTime, int id, Set<String> tags) {
+                DateAndTime endTime, int id, Set<String> tags, String email) {
         this.title = title;
         this.description = description;
         this.location = location;
@@ -37,6 +38,15 @@ public class Note implements Parcelable {
         this.endTime = endTime;
         this.id = id;
         this.tags = tags;
+        userEmail = email;
+    }
+
+    public String getUserEmail() {
+        return userEmail;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
     }
 
     public Note() {}
@@ -125,6 +135,7 @@ public class Note implements Parcelable {
         bundle.putSerializable("endTime", endTime);
         bundle.putString("title", title);
         bundle.putString("description", description);
+        bundle.putString("user_email", userEmail);
         if (id != null) {
             bundle.putInt("id", id);
         }
@@ -141,6 +152,7 @@ public class Note implements Parcelable {
         time = (DateAndTime) bundle.getSerializable("time");
         endTime = (DateAndTime) bundle.getSerializable("endTime");
         id = bundle.getInt("id");
+        userEmail = bundle.getString("user_email");
         String[] tags = bundle.getStringArray("tags");
         for (String tag : tags) {
             this.tags.add(tag);
@@ -165,13 +177,14 @@ public class Note implements Parcelable {
     public JSONObject toJson() {
         JSONObject jNote = new JSONObject();
         try {
-            jNote.put("Title", title);
-            jNote.put("Comment", description);
-            jNote.put("Id", id);
-            jNote.put("Start_time", time.toString());
-            jNote.put("End_time", endTime.toString());
-            jNote.put("Latitude", location.latitude);
-            jNote.put("Longitude", location.longitude);
+            jNote.put("title", title);
+            jNote.put("comment", description);
+            jNote.put("id", id);
+            jNote.put("start_time", time.toString());
+            jNote.put("end_time", endTime.toString());
+            jNote.put("latitude", location.latitude);
+            jNote.put("longitude", location.longitude);
+            jNote.put("user_email", userEmail);
             return jNote;
         } catch (JSONException e) {
             e.printStackTrace();
@@ -181,14 +194,15 @@ public class Note implements Parcelable {
 
     public Note(JSONObject object) {
         try {
-            this.id = object.getInt("Id");
-            this.title = object.getString("Title");
-            this.description = object.getString("Comment");
-            double latitude = object.getDouble("Latitude");
-            double longitude = object.getDouble("Longitude");
+            this.id = object.getInt("id");
+            this.title = object.getString("title");
+            this.description = object.getString("comment");
+            this.userEmail = object.getString("user_email");
+            double latitude = object.getDouble("latitude");
+            double longitude = object.getDouble("longitude");
             location = new LatLng(latitude, longitude);
-            time = DateAndTime.fromString(object.getString("Start_time"));
-            endTime = DateAndTime.fromString(object.getString("End_time"));
+            time = DateAndTime.fromString(object.getString("start_time"));
+            endTime = DateAndTime.fromString(object.getString("end_time"));
         } catch (JSONException e) {
             e.printStackTrace();
         }

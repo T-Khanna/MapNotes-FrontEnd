@@ -48,9 +48,10 @@ public class NoteDisplayActivity extends FragmentActivity {
 
         Intent i = getIntent();
         thisNote = i.getParcelableExtra("note");
+        String loginEmail = i.getStringExtra("loginEmail");
 
         ImageView editButton = findViewById(R.id.edit_button);
-        if (true) { //thisNote.user == user)
+        if (thisNote.getUserEmail().equals(loginEmail)) {
             editButton.setVisibility(View.VISIBLE);
             editButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -86,13 +87,19 @@ public class NoteDisplayActivity extends FragmentActivity {
                 addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
                 TextView locationText = findViewById(R.id.location_text);
                 if (addresses != null) {
-                    final Address returnedAddress = addresses.get(0);
-                    locationText.setText(returnedAddress.getAddressLine(0));
+                    final String address;
+                    if (addresses.size() > 0) {
+                        Address returnedAddress = addresses.get(0);
+                        address = returnedAddress.getAddressLine(0);
+                    } else {
+                        address = location.latitude + ", " + location.longitude;
+                    }
+                    locationText.setText(address);
                     locationText.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             // Create a Uri from an intent string. Use the result to create an Intent.
-                            Uri gmmIntentUri = Uri.parse("geo:0,0?q=" + returnedAddress.getAddressLine(0));
+                            Uri gmmIntentUri = Uri.parse("geo:0,0?q=" + address);
 
                             // Create an Intent from gmmIntentUri. Set the action to ACTION_VIEW
                             Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);

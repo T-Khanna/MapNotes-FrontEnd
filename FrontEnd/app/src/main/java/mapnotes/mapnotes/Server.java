@@ -16,6 +16,7 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import mapnotes.mapnotes.data_classes.Function;
@@ -103,7 +104,7 @@ public class Server {
         requests.add(request);
     }
 
-    public void postJSONRequest(String serverLocation, JSONObject params, final Function<JSONObject> onResponse) {
+    public void postJSONRequest(String serverLocation, JSONObject params, final Map<String, String> headers, final Function<JSONObject> onResponse) {
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, IP + serverLocation,
                 params, new Response.Listener<JSONObject>() {
             @Override
@@ -115,7 +116,12 @@ public class Server {
             public void onErrorResponse(VolleyError error) {
                 error.printStackTrace();
             }
-        });
+        }){
+        @Override
+        public Map<String, String> getHeaders() {
+            if (headers != null) return headers;
+            return new HashMap<>();
+        }};
 
         requests.add(request);
     }

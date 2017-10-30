@@ -17,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -64,7 +65,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
     private DateAndTime selectedDate = null;
     private final boolean DEBUG = true;
     private SwipeRefreshLayout refresh;
-
+    private GoogleSignInAccount login;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +85,8 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         timeSlider.setProgress(cal.get(Calendar.HOUR_OF_DAY) * 4);
         mapFragment.getMapAsync(this);
 
+        Intent i = getIntent();
+        login = i.getParcelableExtra("googleSignIn");
 
         selectedDate = new DateAndTime(cal);
         dateView = findViewById(R.id.date_view);
@@ -149,6 +152,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
             public boolean onMarkerClick(Marker marker) {
                 if (marker.equals(lastMarker)) {
                     Intent i = new Intent(MainMapsActivity.this, NoteDisplayActivity.class);
+                    i.putExtra("loginEmail", login.getEmail());
                     Note note = (Note) marker.getTag();
                     i.putExtra("note", note);
                     if (DEBUG) Log.d(MainMapsActivity.class.getSimpleName(), "Starting note display");
@@ -219,6 +223,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
                             mMap.clear();
                             Map<Note, Marker> newNotes = new HashMap<>();
                             JSONArray array = input.getJSONArray("Notes");
+                            if (DEBUG) Log.d(MainMapsActivity.class.getSimpleName(), "Received " + array.length() + " notes from server");
                             for (int i = 0; i < array.length(); i++) {
                                 JSONObject jsonNote = array.getJSONObject(i);
                                 Note note = new Note(jsonNote);
@@ -320,8 +325,14 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 final Note newNote = data.getParcelableExtra("note");
+                newNote.setUserEmail(login.getEmail());
                 JSONObject params = newNote.toJson();
-                server.postJSONRequest("api/notes", params, new Function<JSONObject>() {
+
+                //Create header for request
+                Map<String, String> header = new HashMap<>();
+                header.put("login_token", login.getIdToken());
+
+                server.postJSONRequest("api/notes", params, header, new Function<JSONObject>() {
                     @Override
                     public void run(JSONObject input) {
                         if (input.has("Id")) {
