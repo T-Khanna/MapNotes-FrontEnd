@@ -31,11 +31,12 @@ public class Server {
     private final String IP = "https://mapnotes-backend.herokuapp.com/";
     private Context context;
     private RequestQueue requests;
+    private String idToken;
 
-    public Server (Context context) {
+    public Server (Context context, String idToken) {
         this.context = context;
         requests = Volley.newRequestQueue(context);
-
+        this.idToken = idToken;
         VolleyLog.DEBUG = true;
 
         requests.start();
@@ -72,6 +73,13 @@ public class Server {
             protected Map<String, String> getParams (){
                 return params;
             }
+            @Override
+            public Map<String, String> getHeaders() {
+                //Create header for request
+                Map<String, String> header = new HashMap<>();
+                header.put("login_token", idToken);
+                return header;
+            }
         };
         requests.add(stringRequest);
 
@@ -99,12 +107,20 @@ public class Server {
             public void onErrorResponse(VolleyError error) {
                 error.printStackTrace();
             }
-        });
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                //Create header for request
+                Map<String, String> header = new HashMap<>();
+                header.put("login_token", idToken);
+                return header;
+            }};
+
 
         requests.add(request);
     }
 
-    public void postJSONRequest(String serverLocation, JSONObject params, final Map<String, String> headers, final Function<JSONObject> onResponse) {
+    public void postJSONRequest(String serverLocation, JSONObject params, final Function<JSONObject> onResponse) {
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, IP + serverLocation,
                 params, new Response.Listener<JSONObject>() {
             @Override
@@ -119,8 +135,10 @@ public class Server {
         }){
         @Override
         public Map<String, String> getHeaders() {
-            if (headers != null) return headers;
-            return new HashMap<>();
+            //Create header for request
+            Map<String, String> header = new HashMap<>();
+            header.put("login_token", idToken);
+            return header;
         }};
 
         requests.add(request);

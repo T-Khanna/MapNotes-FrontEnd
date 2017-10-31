@@ -74,7 +74,10 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        server = new Server(this);
+
+        Intent i = getIntent();
+        login = i.getParcelableExtra("googleSignIn");
+        server = new Server(this, login.getIdToken());
         timeSlider = findViewById(R.id.time_slider);
         sliderText = findViewById(R.id.time_text);
         sliderText.setVisibility(View.GONE);
@@ -84,9 +87,6 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         Calendar cal = Calendar.getInstance();
         timeSlider.setProgress(cal.get(Calendar.HOUR_OF_DAY) * 4);
         mapFragment.getMapAsync(this);
-
-        Intent i = getIntent();
-        login = i.getParcelableExtra("googleSignIn");
 
         selectedDate = new DateAndTime(cal);
         dateView = findViewById(R.id.date_view);
@@ -328,11 +328,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
                 newNote.setUserEmail(login.getEmail());
                 JSONObject params = newNote.toJson();
 
-                //Create header for request
-                Map<String, String> header = new HashMap<>();
-                header.put("login_token", login.getIdToken());
-
-                server.postJSONRequest("api/notes", params, header, new Function<JSONObject>() {
+                server.postJSONRequest("api/notes", params, new Function<JSONObject>() {
                     @Override
                     public void run(JSONObject input) {
                         if (input.has("Id")) {
