@@ -16,6 +16,7 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import mapnotes.mapnotes.data_classes.Function;
@@ -30,13 +31,13 @@ public class Server {
     private final String IP = "https://mapnotes-backend.herokuapp.com/";
     private Context context;
     private RequestQueue requests;
+    private String idToken;
 
-    public Server (Context context) {
+    public Server (Context context, String idToken) {
         this.context = context;
         requests = Volley.newRequestQueue(context);
-
+        this.idToken = idToken;
         VolleyLog.DEBUG = true;
-
         requests.start();
     }
 
@@ -71,6 +72,13 @@ public class Server {
             protected Map<String, String> getParams (){
                 return params;
             }
+            @Override
+            public Map<String, String> getHeaders() {
+                //Create header for request
+                Map<String, String> header = new HashMap<>();
+                header.put("login_token", idToken);
+                return header;
+            }
         };
         requests.add(stringRequest);
 
@@ -98,7 +106,15 @@ public class Server {
             public void onErrorResponse(VolleyError error) {
                 error.printStackTrace();
             }
-        });
+        }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                //Create header for request
+                Map<String, String> header = new HashMap<>();
+                header.put("login_token", idToken);
+                return header;
+            }};
+
 
         requests.add(request);
     }
@@ -115,7 +131,14 @@ public class Server {
             public void onErrorResponse(VolleyError error) {
                 error.printStackTrace();
             }
-        });
+        }){
+        @Override
+        public Map<String, String> getHeaders() {
+            //Create header for request
+            Map<String, String> header = new HashMap<>();
+            header.put("login_token", idToken);
+            return header;
+        }};
 
         requests.add(request);
     }

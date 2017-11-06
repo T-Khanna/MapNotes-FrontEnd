@@ -1,6 +1,7 @@
 <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -134,6 +135,48 @@
         </RelativeLayout>
 
     </RelativeLayout>
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:background="@color/textColorSecondary"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:src="@drawable/ic_label"
+            android:layout_centerVertical="true"
+            android:id="@+id/tag_icon"/>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/add_tag_text"
+            android:layout_marginLeft="16dp"
+            android:layout_toRightOf="@+id/tag_icon"
+            android:layout_toLeftOf="@+id/add_tag"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:id="@+id/add_tag"
+            android:layout_marginRight="8dp"
+            android:text="Add Tag"/>
+    </RelativeLayout>
+
+    <co.lujun.androidtagview.TagContainerLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tag_view"
+        android:padding="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        app:tag_enable_cross="true"/>
 
     <View
         android:layout_width="fill_parent"

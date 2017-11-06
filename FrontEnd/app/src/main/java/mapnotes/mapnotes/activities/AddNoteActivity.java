@@ -6,9 +6,11 @@ import android.app.DialogFragment;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -26,7 +28,11 @@ import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
+import co.lujun.androidtagview.TagContainerLayout;
+import co.lujun.androidtagview.TagView;
 import mapnotes.mapnotes.DatePickerFragment;
 import mapnotes.mapnotes.R;
 import mapnotes.mapnotes.TimePickerFragment;
@@ -38,12 +44,12 @@ import mapnotes.mapnotes.data_classes.Time;
 public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    private final Note thisNote = new Note();
+    private Note thisNote = new Note();
     private TextView startTime;
     private TextView endTime;
     private TextView startDate;
     private TextView endDate;
-
+    private List<String> tags = new LinkedList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,14 +75,9 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
 
         //Try and find location to zoom into and set initial marker
         Intent i = getIntent();
-        Location location = i.getParcelableExtra("location");
-
-        if (location != null) {
-            LatLng marker = new LatLng(location.getLatitude(), location.getLongitude());
-            mMap.addMarker(new MarkerOptions().position(marker));
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker, 15));
-            thisNote.setLocation(marker);
-            updateUI();
+        Location location = null;
+        if (i.hasExtra("location")) {
+            location = i.getParcelableExtra("location");
         }
 
         //Set up local variables
@@ -199,8 +200,70 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
             }
         });
 
+
+        //Tags
+        final EditText tagText = findViewById(R.id.add_tag_text);
+        Button addTag = findViewById(R.id.add_tag);
+        final TagContainerLayout tagContainerLayout = findViewById(R.id.tag_view);
+
+        addTag.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String newTag = tagText.getText().toString().trim();
+                if (thisNote.addTag(newTag)) {
+                    tags.add(newTag);
+                }
+                tagContainerLayout.setTags(tags);
+            }
+        });
+
+        tagContainerLayout.setOnTagClickListener(new TagView.OnTagClickListener() {
+
+            @Override
+            public void onTagClick(int position, String text) {
+
+            }
+
+            @Override
+            public void onTagLongClick(int position, String text) {
+
+            }
+
+            @Override
+            public void onTagCrossClick(int position) {
+                String tagToRemove = tags.get(position);
+                thisNote.removeTag(tagToRemove);
+                Log.d(AddNoteActivity.class.getSimpleName(), "Removing tag: " + tagToRemove);
+                tags.remove(position);
+                tagContainerLayout.removeTag(position);
+            }
+        });
+
+        //Check if we are editing a note
+        if (i.hasExtra("editNote")) {
+            thisNote = i.getParcelableExtra("editNote");
+            location = new Location(LocationManager.GPS_PROVIDER);
+            location.setLatitude(thisNote.getLocation().latitude);
+            location.setLongitude(thisNote.getLocation().longitude);
+
+            title.setText(thisNote.getTitle());
+            description.setText(thisNote.getDescription());
+
+            tags = new LinkedList<>(thisNote.getTags());
+            tagContainerLayout.setTags(tags);
+        }
+
+
         updateTimes(startDate, startTime, thisNote.getTime());
         updateTimes(endDate, endTime, thisNote.getEndTime());
+
+        if (location != null) {
+            LatLng marker = new LatLng(location.getLatitude(), location.getLongitude());
+            mMap.addMarker(new MarkerOptions().position(marker));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker, 15));
+            thisNote.setLocation(marker);
+            updateUI();
+        }
 
     }
 

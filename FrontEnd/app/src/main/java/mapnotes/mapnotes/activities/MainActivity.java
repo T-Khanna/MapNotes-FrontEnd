@@ -1,21 +1,36 @@
 package mapnotes.mapnotes.activities;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.net.Uri;
+import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.View;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.formats.NativeAd;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -26,6 +41,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,6 +51,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import mapnotes.mapnotes.DatePickerFragment;
@@ -45,7 +62,8 @@ import mapnotes.mapnotes.data_classes.Function;
 import mapnotes.mapnotes.data_classes.Note;
 import mapnotes.mapnotes.data_classes.Time;
 
-public class MainMapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
 
     private GoogleMap mMap;
     private SeekBar timeSlider;
@@ -54,41 +72,86 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
     private ImageView addNote;
     private TextView dateView;
     private final int REQUEST_ADD_NOTE = 34679;
+    private final int REQUEST_EDIT_NOTE = 34680;
     private final int REQUEST_ACCESS_LOCATION = 0;
     private Marker lastMarker = null;
-    private Map<LatLng, Note> notes;
+    private Map<Note, Marker> notes = new HashMap<>();
     private DateAndTime selectedDate = null;
     private final boolean DEBUG = true;
-
+    private SwipeRefreshLayout refresh;
+    private GoogleSignInAccount login;
+    private ImageView location;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        setContentView(R.layout.activity_main);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().hide();
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        server = new Server(this);
-        timeSlider = findViewById(R.id.time_slider);
-        sliderText = findViewById(R.id.time_text);
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        Intent i = getIntent();
+        login = i.getParcelableExtra("googleSignIn");
+        server = new Server(this, login.getIdToken());
+        timeSlider = (SeekBar) findViewById(R.id.time_slider);
+        sliderText = (TextView) findViewById(R.id.time_text);
         sliderText.setVisibility(View.GONE);
-        addNote = findViewById(R.id.add_note);
+        addNote = (ImageView) findViewById(R.id.add_note);
+        location = (ImageView) findViewById(R.id.location_icon);
 
         timeSlider.setMax(95); //Number of 15 min intervals in a day
         Calendar cal = Calendar.getInstance();
         timeSlider.setProgress(cal.get(Calendar.HOUR_OF_DAY) * 4);
         mapFragment.getMapAsync(this);
 
-
         selectedDate = new DateAndTime(cal);
-        dateView = findViewById(R.id.date_view);
+        dateView = (TextView) findViewById(R.id.date_view);
         updateDateView();
 
-        getNotes(selectedDate);
+        View header = navigationView.getHeaderView(0);
+        ImageView userPicture = header.findViewById(R.id.user_picture);
+        Uri image = login.getPhotoUrl();
+        if (image != null) {
+            Picasso.with(this).load(image).into(userPicture);
+        }
+        TextView user_name = header.findViewById(R.id.user_name);
+        user_name.setText(login.getDisplayName());
 
-        generateNotes();
+        getNotes(selectedDate);
     }
 
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        if (id == R.id.nav_filter) {
+            // Handle the tag filtering
+        } else if (id == R.id.nav_settings) {
+            //Open the preferences activity
+        }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
 
     /**
      * Manipulates the map once available.
@@ -105,6 +168,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         //Initialise Map
         //Disable Map Toolbar:
         mMap.getUiSettings().setMapToolbarEnabled(false);
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
         getLocation(new Function<Location>() {
             @Override
@@ -145,11 +209,13 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
             @Override
             public boolean onMarkerClick(Marker marker) {
                 if (marker.equals(lastMarker)) {
-                    Intent i = new Intent(MainMapsActivity.this, NoteDisplayActivity.class);
-                    Note note = notes.get(marker.getPosition());
+                    Intent i = new Intent(MainActivity.this, NoteDisplayActivity.class);
+                    i.putExtra("loginEmail", login.getEmail());
+                    Note note = (Note) marker.getTag();
                     i.putExtra("note", note);
-                    if (DEBUG) Log.d(MainMapsActivity.class.getSimpleName(), "Starting note display");
-                    startActivity(i);
+                    if (DEBUG) Log.d(MainActivity.class.getSimpleName(), "Starting note display");
+                    marker.remove();
+                    startActivityForResult(i, REQUEST_EDIT_NOTE);
                 }
                 lastMarker = marker;
                 return false;
@@ -162,7 +228,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
                 getLocation(new Function<Location>() {
                     @Override
                     public void run(Location input) {
-                        Intent i = new Intent(MainMapsActivity.this, AddNoteActivity.class);
+                        Intent i = new Intent(MainActivity.this, AddNoteActivity.class);
                         i.putExtra("location", input);
                         startActivityForResult(i, REQUEST_ADD_NOTE);
                     }
@@ -187,6 +253,28 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
                 newFragment.show(getFragmentManager(), "timepicker");
             }
         });
+
+        refresh = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh);
+        refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                getNotes(selectedDate);
+            }
+        });
+
+        location.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getLocation(new Function<Location>() {
+                    @Override
+                    public void run(Location input) {
+                        LatLng currentLoc = new LatLng(input.getLatitude(), input.getLongitude());
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLoc, 15));
+                    }
+                });
+            }
+        });
+
     }
 
 
@@ -197,22 +285,25 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
     private void getNotes(DateAndTime date) {
         try {
             String url = "api/notes/\"" + date.toString() + "\"";
-            if (DEBUG) Log.d(MainMapsActivity.class.getSimpleName(), "Getting notes at: " + selectedDate.toString());
+            if (DEBUG) Log.d(MainActivity.class.getSimpleName(), "Getting notes at: " + selectedDate.toString());
             server.getJSONRequest(url, null, new Function<JSONObject>() {
                 @Override
                 public void run(JSONObject input) {
                     try {
                         if (input.has("Notes")) {
                             mMap.clear();
-                            Map<LatLng, Note> newNotes = new HashMap<>();
+                            Map<Note, Marker> newNotes = new HashMap<>();
                             JSONArray array = input.getJSONArray("Notes");
+                            if (DEBUG) Log.d(MainActivity.class.getSimpleName(), "Received " + array.length() + " notes from server");
                             for (int i = 0; i < array.length(); i++) {
                                 JSONObject jsonNote = array.getJSONObject(i);
                                 Note note = new Note(jsonNote);
-                                newNotes.put(note.getLocation(), note);
-                                mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
+                                Marker marker = mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
+                                marker.setTag(note);
+                                newNotes.put(note, marker);
                             }
                             notes = newNotes;
+                            refresh.setRefreshing(false);
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -305,23 +396,37 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 final Note newNote = data.getParcelableExtra("note");
+                newNote.setUserEmail(login.getEmail());
                 JSONObject params = newNote.toJson();
+
                 server.postJSONRequest("api/notes", params, new Function<JSONObject>() {
-                        @Override
-                        public void run(JSONObject input) {
-                            if (input.has("Id")) {
-                                try {
-                                    newNote.setId(input.getInt("Id"));
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
+                    @Override
+                    public void run(JSONObject input) {
+                        if (input.has("Id")) {
+                            try {
+                                newNote.setId(input.getInt("Id"));
+                            } catch (JSONException e) {
+                                e.printStackTrace();
                             }
                         }
+                    }
                 });
-                //Add note to class variable notes
-                notes.put(newNote.getLocation(), newNote);
 
-                mMap.addMarker(new MarkerOptions().position(newNote.getLocation()).title(newNote.getTitle()));
+                Marker marker = mMap.addMarker(new MarkerOptions().position(newNote.getLocation()).title(newNote.getTitle()));
+                marker.setTag(newNote);
+                notes.put(newNote, marker);
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
+            }
+        } else if (requestCode == REQUEST_EDIT_NOTE) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                final Note newNote = data.getParcelableExtra("note");
+
+                Marker marker = mMap.addMarker(new MarkerOptions().position(newNote.getLocation()).title(newNote.getTitle()));
+                marker.setTag(newNote);
+
+                //Add note to class variable notes
+                notes.put(newNote, marker);
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
             }
         }
@@ -333,21 +438,11 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
     private void updateUI() {
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
-            mMap.getUiSettings().setMyLocationButtonEnabled(true);
+            location.setVisibility(View.VISIBLE);
         } else {
             mMap.setMyLocationEnabled(false);
-            mMap.getUiSettings().setMyLocationButtonEnabled(true);
+            location.setVisibility(View.INVISIBLE);
         }
-    }
-
-    /**
-     * To be expanded, will take response from server to generate a map of the notes.
-     */
-    private void generateNotes() {
-        Map<LatLng, Note> newNotes = new HashMap<>();
-
-
-        notes = newNotes;
     }
 
     private void updateDateView() {
@@ -356,4 +451,39 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         String date = dateFormat.format(d);
         dateView.setText(date);
     }
+
+    /**
+     * Given a list of tags to filter by, only show notes that have those tags
+     * @param filterTags
+     */
+    private void filter(List<String> filterTags) {
+        Map<Note, Marker> newNotes = new HashMap<>();
+        for (Map.Entry entry : notes.entrySet()) {
+            Note note = (Note) entry.getKey();
+            boolean found = false;
+            for (String tag : filterTags) {
+                if (note.hasTag(tag)) {
+                    found = true;
+                    break;
+                }
+            }
+            Marker marker = (Marker) entry.getValue();
+            if (!found) {
+                //If we didn't find a valid tag for filtering, remove marker
+                if (marker != null) {
+                    marker.remove();
+                }
+                newNotes.put(note, null);
+            } else {
+                //If we should show this note, make sure the marker for it exists
+                if (marker == null) {
+                    marker = mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
+                    marker.setTag(note);
+                }
+                newNotes.put(note, marker);
+            }
+        }
+        notes = newNotes;
+    }
+
 }

@@ -1,6 +1,7 @@
 <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -24,11 +25,24 @@
             android:layout_marginBottom="20dp"
             android:textColor="@color/textColorPrimary"/>
 
+        <ImageView
+            android:id="@+id/edit_button"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="8dp"
+            android:layout_centerVertical="true"
+            android:adjustViewBounds="true"
+            android:background="@color/colorPrimary"
+            android:src="@drawable/ic_edit"/>
+
         <TextView
             android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@+id/cancel_button"
+            android:layout_toLeftOf="@+id/edit_button"
             android:layout_centerVertical="true"
             android:layout_marginLeft="16dp"
             android:textColor="@color/textColorPrimary"
@@ -129,9 +143,31 @@
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:id="@+id/location_text"
+            android:layout_marginRight="32dp"
             android:layout_toRightOf="@+id/pin_icon"
             android:text="Location"/>
+    </RelativeLayout>
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="2dp"
+            android:layout_marginTop="8dp"
+            android:src="@drawable/ic_label"
+            android:id="@+id/tag_icon"/>
+
+        <co.lujun.androidtagview.TagContainerLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/tag_view"
+            android:layout_toRightOf="@+id/tag_icon"
+            android:padding="8dp"
+            android:layout_marginRight="32dp"
+            android:layout_marginLeft="16dp"/>
     </RelativeLayout>
 
 </LinearLayout>
