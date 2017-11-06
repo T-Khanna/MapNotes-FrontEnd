@@ -77,7 +77,7 @@ public class GoogleSignIn extends AppCompatActivity {
         if (result.isSuccess()) {
             // Signed in successfully, show authenticated UI.
             GoogleSignInAccount acct = result.getSignInAccount();
-            Intent i = new Intent(this, MainMapsActivity.class);
+            Intent i = new Intent(this, MainActivity.class);
             i.putExtra("googleSignIn", acct);
             startActivity(i);
             finish();
