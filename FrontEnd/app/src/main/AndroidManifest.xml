@@ -41,11 +41,9 @@
             android:windowSoftInputMode="stateHidden|adjustPan">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.MainMapsActivity"/>
+                android:value=".activities.MainActivity"/>
         </activity>
         <activity android:name=".activities.NoteDisplayActivity">
-<<<<<<< HEAD
-=======
         </activity>
         <activity
             android:name=".activities.LoginActivity"
@@ -62,7 +60,6 @@
             android:name=".activities.MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar">
->>>>>>> Login
         </activity>
     </application>
 
