@@ -66,7 +66,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
     private final boolean DEBUG = true;
     private SwipeRefreshLayout refresh;
     private GoogleSignInAccount login;
-
+    private ImageView location;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,6 +82,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         sliderText = findViewById(R.id.time_text);
         sliderText.setVisibility(View.GONE);
         addNote = findViewById(R.id.add_note);
+        location = findViewById(R.id.location_icon);
 
         timeSlider.setMax(95); //Number of 15 min intervals in a day
         Calendar cal = Calendar.getInstance();
@@ -111,6 +112,7 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
         //Initialise Map
         //Disable Map Toolbar:
         mMap.getUiSettings().setMapToolbarEnabled(false);
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
         getLocation(new Function<Location>() {
             @Override
@@ -201,6 +203,19 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
             @Override
             public void onRefresh() {
                 getNotes(selectedDate);
+            }
+        });
+
+        location.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getLocation(new Function<Location>() {
+                    @Override
+                    public void run(Location input) {
+                        LatLng currentLoc = new LatLng(input.getLatitude(), input.getLongitude());
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLoc, 15));
+                    }
+                });
             }
         });
 
@@ -367,10 +382,10 @@ public class MainMapsActivity extends FragmentActivity implements OnMapReadyCall
     private void updateUI() {
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
-            mMap.getUiSettings().setMyLocationButtonEnabled(true);
+            location.setVisibility(View.VISIBLE);
         } else {
             mMap.setMyLocationEnabled(false);
-            mMap.getUiSettings().setMyLocationButtonEnabled(true);
+            location.setVisibility(View.INVISIBLE);
         }
     }
 

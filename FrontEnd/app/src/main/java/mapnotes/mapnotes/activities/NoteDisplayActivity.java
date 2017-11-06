@@ -175,6 +175,15 @@ public class NoteDisplayActivity extends FragmentActivity {
     }
 
     @Override
+    public void onBackPressed()
+    {
+        Intent result = new Intent();
+        result.putExtra("note", thisNote);
+        setResult(Activity.RESULT_OK, result);
+        finish();
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Check which request we're responding to
         if (requestCode == REQUEST_EDIT_NOTE) {

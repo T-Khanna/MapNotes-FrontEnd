@@ -25,10 +25,10 @@
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_add"
-                    android:id="@+id/dummy_icon"
-                    android:visibility="invisible"
+                    android:src="@mipmap/ic_location"
+                    android:id="@+id/location_icon"
                     android:layout_alignParentTop="true"
+                    android:padding="7dp"
                     android:layout_alignParentRight="true"/>
 
                 <ImageView
@@ -37,7 +37,7 @@
                     android:src="@drawable/ic_add"
                     android:id="@+id/add_note"
                     android:padding="7dp"
-                    android:layout_below="@+id/dummy_icon"
+                    android:layout_below="@+id/location_icon"
                     android:layout_alignParentRight="true"/>
             </RelativeLayout>
         </ScrollView>
