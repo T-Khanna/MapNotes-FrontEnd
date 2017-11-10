@@ -16,6 +16,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -51,10 +52,12 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import mapnotes.mapnotes.DatePickerFragment;
+import mapnotes.mapnotes.FilterDialog;
 import mapnotes.mapnotes.R;
 import mapnotes.mapnotes.Server;
 import mapnotes.mapnotes.data_classes.DateAndTime;
@@ -81,6 +84,7 @@ public class MainActivity extends AppCompatActivity
     private SwipeRefreshLayout refresh;
     private GoogleSignInAccount login;
     private ImageView location;
+    private List<String> filterTags = new LinkedList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -144,6 +148,13 @@ public class MainActivity extends AppCompatActivity
 
         if (id == R.id.nav_filter) {
             // Handle the tag filtering
+            new FilterDialog(this, filterTags).setPositiveButton(new Function<List<String>>() {
+                @Override
+                public void run(List<String> input) {
+                    filter(input);
+                    filterTags = input;
+                }
+            }).show();
         } else if (id == R.id.nav_settings) {
             //Open the preferences activity
         }
@@ -225,14 +236,11 @@ public class MainActivity extends AppCompatActivity
         addNote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                getLocation(new Function<Location>() {
-                    @Override
-                    public void run(Location input) {
-                        Intent i = new Intent(MainActivity.this, AddNoteActivity.class);
-                        i.putExtra("location", input);
-                        startActivityForResult(i, REQUEST_ADD_NOTE);
-                    }
-                });
+                LatLng location = mMap.getCameraPosition().target;
+
+                Intent i = new Intent(MainActivity.this, AddNoteActivity.class);
+                i.putExtra("location", location);
+                startActivityForResult(i, REQUEST_ADD_NOTE);
             }
         });
 
@@ -284,7 +292,7 @@ public class MainActivity extends AppCompatActivity
      */
     private void getNotes(DateAndTime date) {
         try {
-            String url = "api/notes/\"" + date.toString() + "\"";
+            String url = "api/notes/time/\"" + date.toString() + "\"";
             if (DEBUG) Log.d(MainMapsActivity.class.getSimpleName(), "Getting notes at: " + selectedDate.toString());
             server.getJSONRequest(url, null, new Function<JSONObject>() {
                 @Override
@@ -461,10 +469,14 @@ public class MainActivity extends AppCompatActivity
         for (Map.Entry entry : notes.entrySet()) {
             Note note = (Note) entry.getKey();
             boolean found = false;
-            for (String tag : filterTags) {
-                if (note.hasTag(tag)) {
-                    found = true;
-                    break;
+            if (filterTags == null || filterTags.size() == 0) {
+                found = true;
+            } else {
+                for (String tag : filterTags) {
+                    if (note.hasTag(tag)) {
+                        found = true;
+                        break;
+                    }
                 }
             }
             Marker marker = (Marker) entry.getValue();

@@ -65,6 +65,10 @@
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
+        <activity
+            android:name=".activities.SelectLocationActivity"
+            android:label="@string/title_activity_select_location">
+        </activity>
     </application>
 
 </manifest>

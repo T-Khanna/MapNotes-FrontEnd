@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -16,14 +18,20 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -41,41 +49,30 @@ import mapnotes.mapnotes.data_classes.Function;
 import mapnotes.mapnotes.data_classes.Note;
 import mapnotes.mapnotes.data_classes.Time;
 
-public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallback {
+public class AddNoteActivity extends FragmentActivity {
 
-    private GoogleMap mMap;
     private Note thisNote = new Note();
     private TextView startTime;
     private TextView endTime;
     private TextView startDate;
     private TextView endDate;
     private List<String> tags = new LinkedList<>();
+    private final int REQUEST_LOCATION = 12786;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_note);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        initialise();
     }
 
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     */
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
 
-        //Initial UI settings
-        mMap.getUiSettings().setMapToolbarEnabled(false);
+    public void initialise() {
 
         //Try and find location to zoom into and set initial marker
         Intent i = getIntent();
-        Location location = null;
+        LatLng location = null;
         if (i.hasExtra("location")) {
             location = i.getParcelableExtra("location");
         }
@@ -87,16 +84,6 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
         cal = Calendar.getInstance();
         cal.add(Calendar.HOUR_OF_DAY, 1);
         thisNote.setEndTime(new DateAndTime(cal));
-
-        //Set UI listeners
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng latLng) {
-                mMap.clear();
-                mMap.addMarker(new MarkerOptions().position(latLng));
-                thisNote.setLocation(latLng);
-            }
-        });
 
         final EditText title = findViewById(R.id.title);
         final EditText description = findViewById(R.id.description);
@@ -214,6 +201,7 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
                     tags.add(newTag);
                 }
                 tagContainerLayout.setTags(tags);
+                tagText.setText("");
             }
         });
 
@@ -239,13 +227,23 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
             }
         });
 
+        final TextView locationText = findViewById(R.id.location_text);
+
         //Check if we are editing a note
         if (i.hasExtra("editNote")) {
             thisNote = i.getParcelableExtra("editNote");
-            location = new Location(LocationManager.GPS_PROVIDER);
-            location.setLatitude(thisNote.getLocation().latitude);
-            location.setLongitude(thisNote.getLocation().longitude);
+            location = thisNote.getLocation();
 
+            try {
+                Geocoder geocoder = new Geocoder(getApplicationContext());
+                List<Address> addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1);
+                if (addresses.size() > 0) {
+                    String address = addresses.get(0).getAddressLine(0);
+                    locationText.setText(address);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             title.setText(thisNote.getTitle());
             description.setText(thisNote.getDescription());
 
@@ -254,34 +252,34 @@ public class AddNoteActivity extends FragmentActivity implements OnMapReadyCallb
         }
 
 
+
+        final LatLng locationCopy = location;
+        locationText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(AddNoteActivity.this, SelectLocationActivity.class);
+                i.putExtra("location", locationCopy);
+                startActivityForResult(i, REQUEST_LOCATION);
+            }
+        });
+
         updateTimes(startDate, startTime, thisNote.getTime());
         updateTimes(endDate, endTime, thisNote.getEndTime());
-
-        if (location != null) {
-            LatLng marker = new LatLng(location.getLatitude(), location.getLongitude());
-            mMap.addMarker(new MarkerOptions().position(marker));
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(marker, 15));
-            thisNote.setLocation(marker);
-            updateUI();
-        }
 
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        if (mMap != null) {
-            updateUI();
-        }
-    }
-
-    private void updateUI() {
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mMap.setMyLocationEnabled(true);
-            mMap.getUiSettings().setMyLocationButtonEnabled(true);
-        } else {
-            mMap.setMyLocationEnabled(false);
-            mMap.getUiSettings().setMyLocationButtonEnabled(true);
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == REQUEST_LOCATION) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                LatLng location = data.getParcelableExtra("location");
+                thisNote.setLocation(location);
+                String address = data.getStringExtra("address");
+                TextView locationText = findViewById(R.id.location_text);
+                locationText.setText(address);
+            }
         }
     }
 
