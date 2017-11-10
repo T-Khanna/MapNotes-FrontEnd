@@ -54,6 +54,8 @@ public class GoogleSignIn extends AppCompatActivity {
             }
         });
 
+        signIn();
+
     }
 
     private void signIn() {

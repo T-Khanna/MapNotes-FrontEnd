@@ -1,0 +1,44 @@
+<RelativeLayout
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tap Location"
+        android:textSize="20sp"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/tap_location_text"/>
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:id="@+id/map"
+              android:layout_below="@+id/tap_location_text"
+              tools:context=".MapActivity"
+              android:layout_above="@+id/bottomLayout"
+              android:name="com.google.android.gms.maps.SupportMapFragment" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/bottomLayout">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TEST TEXT"
+            android:layout_centerVertical="true"
+            android:textAlignment="center"
+            android:id="@+id/LocationText"
+            android:layout_toLeftOf="@+id/UseButton"
+            android:layout_alignParentLeft="true"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Use"
+            android:background="@color/colorAccent"
+            android:layout_alignParentRight="true"
+            android:id="@+id/UseButton"/>
+
+    </RelativeLayout>
+</RelativeLayout>
