@@ -224,7 +224,6 @@ public class MainActivity extends AppCompatActivity
                     i.putExtra("loginEmail", login.getEmail());
                     Note note = (Note) marker.getTag();
                     i.putExtra("note", note);
-                    if (DEBUG) Log.d(MainMapsActivity.class.getSimpleName(), "Starting note display");
                     marker.remove();
                     startActivityForResult(i, REQUEST_EDIT_NOTE);
                 }
@@ -293,7 +292,6 @@ public class MainActivity extends AppCompatActivity
     private void getNotes(DateAndTime date) {
         try {
             String url = "api/notes/time/\"" + date.toString() + "\"";
-            if (DEBUG) Log.d(MainMapsActivity.class.getSimpleName(), "Getting notes at: " + selectedDate.toString());
             server.getJSONRequest(url, null, new Function<JSONObject>() {
                 @Override
                 public void run(JSONObject input) {
@@ -302,7 +300,6 @@ public class MainActivity extends AppCompatActivity
                             mMap.clear();
                             Map<Note, Marker> newNotes = new HashMap<>();
                             JSONArray array = input.getJSONArray("Notes");
-                            if (DEBUG) Log.d(MainMapsActivity.class.getSimpleName(), "Received " + array.length() + " notes from server");
                             for (int i = 0; i < array.length(); i++) {
                                 JSONObject jsonNote = array.getJSONObject(i);
                                 Note note = new Note(jsonNote);
