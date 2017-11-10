@@ -38,6 +38,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -304,6 +305,7 @@ public class MainActivity extends AppCompatActivity
                                 JSONObject jsonNote = array.getJSONObject(i);
                                 Note note = new Note(jsonNote);
                                 Marker marker = mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
+                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_note));
                                 marker.setTag(note);
                                 newNotes.put(note, marker);
                             }
@@ -418,6 +420,7 @@ public class MainActivity extends AppCompatActivity
                 });
 
                 Marker marker = mMap.addMarker(new MarkerOptions().position(newNote.getLocation()).title(newNote.getTitle()));
+                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_note));
                 marker.setTag(newNote);
                 notes.put(newNote, marker);
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
@@ -428,6 +431,7 @@ public class MainActivity extends AppCompatActivity
                 final Note newNote = data.getParcelableExtra("note");
 
                 Marker marker = mMap.addMarker(new MarkerOptions().position(newNote.getLocation()).title(newNote.getTitle()));
+                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_note));
                 marker.setTag(newNote);
 
                 //Add note to class variable notes
@@ -487,6 +491,7 @@ public class MainActivity extends AppCompatActivity
                 //If we should show this note, make sure the marker for it exists
                 if (marker == null) {
                     marker = mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
+                    marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_note));
                     marker.setTag(note);
                 }
                 newNotes.put(note, marker);
