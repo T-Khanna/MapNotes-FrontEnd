@@ -5,10 +5,12 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -67,15 +69,25 @@ public class FirebaseNotifications extends FirebaseMessagingService {
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
                 PendingIntent.FLAG_ONE_SHOT);
 
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        String ringtonePreference = sp.getString("notifications_new_note_ringtone", "DEFAULT_RINGTONE_URI");
+        // The key of preference was "@string/ringtonePref" which is useless since you're hardcoding the string here anyway.
+        Uri ringtoneUri = Uri.parse(ringtonePreference);
+        boolean vibrate = sp.getBoolean("notifications_new_message_vibrate", true);
+        long[] vibrateTime = {1000, 1000, 1000, 1000, 1000};
+        if (!vibrate) {
+            vibrateTime = null;
+        }
+
         String channelId = "234";
-        Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder =
                 new NotificationCompat.Builder(this, channelId)
                         .setSmallIcon(R.drawable.ic_stat_map)
                         .setContentTitle("New Event")
                         .setContentText(messageBody)
                         .setAutoCancel(true)
-                        .setSound(defaultSoundUri)
+                        .setVibrate(vibrateTime)
+                        .setSound(ringtoneUri)
                         .setContentIntent(pendingIntent);
 
         NotificationManager notificationManager =

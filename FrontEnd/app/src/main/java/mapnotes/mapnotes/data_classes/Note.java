@@ -6,6 +6,7 @@ import android.os.Parcelable;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -27,10 +28,10 @@ public class Note implements Parcelable {
     private DateAndTime endTime = null;
     private Integer id = null;
     private Set<String> tags = new HashSet<>();
-    private String userEmail = "";
+    private Set<String> userEmails = new HashSet<>();
 
     public Note(String title, String description, LatLng location, DateAndTime time,
-                DateAndTime endTime, int id, Set<String> tags, String email) {
+                DateAndTime endTime, int id, Set<String> tags, Set<String> emails) {
         this.title = title;
         this.description = description;
         this.location = location;
@@ -38,15 +39,15 @@ public class Note implements Parcelable {
         this.endTime = endTime;
         this.id = id;
         this.tags = tags;
-        userEmail = email;
+        userEmails = emails;
     }
 
-    public String getUserEmail() {
-        return userEmail;
+    public Set<String> getUserEmail() {
+        return userEmails;
     }
 
-    public void setUserEmail(String userEmail) {
-        this.userEmail = userEmail;
+    public void setUserEmail(Set<String> userEmail) {
+        this.userEmails = userEmail;
     }
 
     public Note() {}
@@ -135,7 +136,7 @@ public class Note implements Parcelable {
         bundle.putSerializable("endTime", endTime);
         bundle.putString("title", title);
         bundle.putString("description", description);
-        bundle.putString("user_email", userEmail);
+        bundle.putStringArray("user_email", userEmails.toArray(new String[0]));
         if (id != null) {
             bundle.putInt("id", id);
         }
@@ -152,10 +153,18 @@ public class Note implements Parcelable {
         time = (DateAndTime) bundle.getSerializable("time");
         endTime = (DateAndTime) bundle.getSerializable("endTime");
         id = bundle.getInt("id");
-        userEmail = bundle.getString("user_email");
+        String[] users = bundle.getStringArray("users");
+        if (users != null) {
+            for (String user : users) {
+                this.userEmails.add(user);
+            }
+        }
+
         String[] tags = bundle.getStringArray("tags");
-        for (String tag : tags) {
-            this.tags.add(tag);
+        if (tags != null) {
+            for (String tag : tags) {
+                this.tags.add(tag);
+            }
         }
         location = in.readParcelable(LatLng.class.getClassLoader());
     }
@@ -184,7 +193,19 @@ public class Note implements Parcelable {
             jNote.put("end_time", endTime.toString());
             jNote.put("latitude", location.latitude);
             jNote.put("longitude", location.longitude);
-            jNote.put("user_email", userEmail);
+
+            JSONArray usersArr = new JSONArray();
+            for (String user : userEmails) {
+                usersArr.put(user);
+            }
+            jNote.put("users", usersArr);
+
+            JSONArray arr = new JSONArray();
+            for (String tag : tags) {
+                arr.put(tag);
+            }
+            jNote.put("tags", arr);
+
             return jNote;
         } catch (JSONException e) {
             e.printStackTrace();
@@ -197,12 +218,25 @@ public class Note implements Parcelable {
             this.id = object.getInt("id");
             this.title = object.getString("title");
             this.description = object.getString("comment");
-            this.userEmail = object.getString("user_email");
             double latitude = object.getDouble("latitude");
             double longitude = object.getDouble("longitude");
             location = new LatLng(latitude, longitude);
             time = DateAndTime.fromString(object.getString("start_time"));
             endTime = DateAndTime.fromString(object.getString("end_time"));
+
+            JSONArray userArray = object.getJSONArray("users");
+            Set<String> newUsers = new HashSet<>();
+            for (int i = 0; i < userArray.length(); i++) {
+                newUsers.add(userArray.getString(i));
+            }
+            userEmails = newUsers;
+
+            JSONArray tagArray = object.getJSONArray("tags");
+            Set<String> newTags = new HashSet<>();
+            for (int i = 0; i < tagArray.length(); i++) {
+                newTags.add(tagArray.getString(i));
+            }
+            tags = newTags;
         } catch (JSONException e) {
             e.printStackTrace();
         }

@@ -43,7 +43,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingService;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -54,6 +56,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -133,6 +136,7 @@ public class MainActivity extends AppCompatActivity
 
         getNotes(selectedDate);
 
+
     }
 
     @Override
@@ -162,6 +166,8 @@ public class MainActivity extends AppCompatActivity
             }).show();
         } else if (id == R.id.nav_settings) {
             //Open the preferences activity
+            Intent i = new Intent(MainActivity.this, SettingsActivity.class);
+            startActivity(i);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -413,7 +419,9 @@ public class MainActivity extends AppCompatActivity
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 final Note newNote = data.getParcelableExtra("note");
-                newNote.setUserEmail(login.getEmail());
+                Set<String> users = new HashSet<>();
+                users.add(login.getEmail());
+                newNote.setUserEmail(users);
                 JSONObject params = newNote.toJson();
 
                 server.postJSONRequest("api/notes", params, new Function<JSONObject>() {
@@ -436,7 +444,9 @@ public class MainActivity extends AppCompatActivity
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
 
                 //Send a push notification to other users
-                sendTopicUpdate(newNote.getTags(), newNote.getLocation().latitude, newNote.getLocation().longitude);
+                if (newNote.getTags().size() > 0) {
+                    sendTopicUpdate(newNote.getTags(), newNote.getLocation().latitude, newNote.getLocation().longitude);
+                }
             }
         } else if (requestCode == REQUEST_EDIT_NOTE) {
             // Make sure the request was successful
@@ -493,7 +503,6 @@ public class MainActivity extends AppCompatActivity
             JSONObject data = new JSONObject();
             data.put("latitude", latitude + "");
             data.put("longitude", longitude + "");
-            data.put("user", login.getEmail());
             obj.put("data", data);
             server.postToTopic(obj, new Function<JSONObject>() {
                 @Override

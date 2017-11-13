@@ -143,6 +143,30 @@ public class Server {
         requests.add(request);
     }
 
+    public void putJSONRequest(String serverLocation, JSONObject params, final Function<JSONObject> onResponse) {
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.PUT, IP + serverLocation,
+                params, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                onResponse.run(response);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+            }
+        }){
+            @Override
+            public Map<String, String> getHeaders() {
+                //Create header for request
+                Map<String, String> header = new HashMap<>();
+                header.put("login_token", idToken);
+                return header;
+            }};
+
+        requests.add(request);
+    }
+
     public void postToTopic(JSONObject params, final Function<JSONObject> onResponse) {
         final String serverLocation = "https://fcm.googleapis.com/fcm/send";
         final String key = "AAAAVn3XP08:APA91bG8r1gML2GQ-FvonOc_2rp4W5clRHMIbqyGUZrygejRMPTyrExoeU7aV0vNU" +
