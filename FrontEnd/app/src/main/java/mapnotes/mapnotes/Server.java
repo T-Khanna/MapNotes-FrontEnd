@@ -143,6 +143,34 @@ public class Server {
         requests.add(request);
     }
 
+    public void postToTopic(JSONObject params, final Function<JSONObject> onResponse) {
+        final String serverLocation = "https://fcm.googleapis.com/fcm/send";
+        final String key = "AAAAVn3XP08:APA91bG8r1gML2GQ-FvonOc_2rp4W5clRHMIbqyGUZrygejRMPTyrExoeU7aV0vNU" +
+                "v24RJqk-4EE7UpSJFlbXk4ag0Ekd1iV5OiQil9tn6eNTpGZDeQnqQuMcVurKpi4uOQn6diZobWq";
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, serverLocation,
+                params, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                onResponse.run(response);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+            }
+        }){
+            @Override
+            public Map<String, String> getHeaders() {
+                //Create header for request
+                Map<String, String> header = new HashMap<>();
+                header.put("Authorization", "key=" + key);
+                header.put("Content-Type", "application/json");
+                return header;
+            }};
+
+        requests.add(request);
+    }
+
     public void getJSONArrayRequest(String serverLocation, JSONArray params, final Function<JSONArray> onResponse) {
         JsonArrayRequest request = new JsonArrayRequest(Request.Method.GET, IP + serverLocation,
                 params, new Response.Listener<JSONArray>() {

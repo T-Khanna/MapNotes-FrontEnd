@@ -43,6 +43,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -56,6 +57,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import mapnotes.mapnotes.DatePickerFragment;
 import mapnotes.mapnotes.FilterDialog;
@@ -94,6 +96,7 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().hide();
+        FirebaseMessaging.getInstance().subscribeToTopic("HELLO");
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -129,6 +132,7 @@ public class MainActivity extends AppCompatActivity
         user_name.setText(login.getDisplayName());
 
         getNotes(selectedDate);
+
     }
 
     @Override
@@ -188,7 +192,6 @@ public class MainActivity extends AppCompatActivity
                 if (input != null) {
                     LatLng userLocation = new LatLng(input.getLatitude(), input.getLongitude());
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
-                    updateUI();
                 }
             }
         });
@@ -283,6 +286,13 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+        updateUI();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mMap != null) updateUI();
     }
 
 
@@ -424,6 +434,9 @@ public class MainActivity extends AppCompatActivity
                 marker.setTag(newNote);
                 notes.put(newNote, marker);
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
+
+                //Send a push notification to other users
+                sendTopicUpdate(newNote.getTags(), newNote.getLocation().latitude, newNote.getLocation().longitude);
             }
         } else if (requestCode == REQUEST_EDIT_NOTE) {
             // Make sure the request was successful
@@ -459,6 +472,38 @@ public class MainActivity extends AppCompatActivity
         SimpleDateFormat dateFormat = new SimpleDateFormat("E, MMM dd, YYYY");
         String date = dateFormat.format(d);
         dateView.setText(date);
+    }
+
+    /**
+     * Tell other users that there is a new note with a tag that they are subscribed to
+     *
+     * @param tags - the topics to send the message to
+     * @param latitude - latitude of the note
+     * @param longitude - longitude of the note
+     */
+    private void sendTopicUpdate(Set<String> tags, double latitude, double longitude) {
+        JSONObject obj = new JSONObject();
+        try {
+            String conditions = "";
+            for (String tag : tags) {
+                conditions += "\'" + tag + "\' in topics || ";
+            }
+            conditions = conditions.substring(0, conditions.length() - 4);
+            obj.put("condition", conditions);
+            JSONObject data = new JSONObject();
+            data.put("latitude", latitude + "");
+            data.put("longitude", longitude + "");
+            data.put("user", login.getEmail());
+            obj.put("data", data);
+            server.postToTopic(obj, new Function<JSONObject>() {
+                @Override
+                public void run(JSONObject input) {
+
+                }
+            });
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

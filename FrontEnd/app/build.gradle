@@ -23,17 +23,19 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
 
-    compile 'com.android.support:appcompat-v7:26.0.0-alpha1'
+    compile 'com.android.support:appcompat-v7:26.1.0'
     compile 'com.google.android.gms:play-services:11.0.4'
     compile 'com.google.android.gms:play-services-ads:11.0.4'
     compile 'com.google.android.gms:play-services-identity:11.0.4'
     compile 'com.google.android.gms:play-services-gcm:11.0.4'
     compile 'com.android.volley:volley:1.0.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.android.support:design:26.+'
+    compile 'com.android.support:design:26.1.0'
     compile 'co.lujun:androidtagview:1.1.4'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.google.android.gms:play-services-maps:11.0.4'
+    compile 'com.google.firebase:firebase-core:11.0.4'
+    compile 'com.google.firebase:firebase-messaging:11.0.4'
     testCompile 'junit:junit:4.12'
 }
 
