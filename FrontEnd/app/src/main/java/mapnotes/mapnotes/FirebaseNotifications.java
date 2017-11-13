@@ -3,8 +3,10 @@ package mapnotes.mapnotes;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -12,6 +14,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -28,9 +31,22 @@ import mapnotes.mapnotes.activities.GoogleSignIn;
 
 public class FirebaseNotifications extends FirebaseMessagingService {
 
+    String email = null;
+
+    public FirebaseNotifications() {
+
+    }
+
     @Override
     public void onDeletedMessages() {
 
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        email = sp.getString("email", "");
     }
 
     @Override
@@ -51,10 +67,12 @@ public class FirebaseNotifications extends FirebaseMessagingService {
                                 Map<String, String> data = message.getData();
                                 double latitude = Double.valueOf(data.get("latitude"));
                                 double longitude = Double.valueOf(data.get("longitude"));
+                                String user = data.get("user");
                                 float[] results = new float[1];
                                 Location.distanceBetween(location.getLatitude(), location.getLongitude(),
                                         latitude, longitude, results);
-                                if (results[0] < 1000) {
+
+                                if (results[0] < 1000 && email != null && !email.equals(user)) {
                                     sendNotification("New event less than 1 km away!");
                                 }
                             }

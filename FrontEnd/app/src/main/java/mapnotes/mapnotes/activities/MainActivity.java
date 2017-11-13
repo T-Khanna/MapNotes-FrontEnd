@@ -6,14 +6,17 @@ import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -134,6 +137,14 @@ public class MainActivity extends AppCompatActivity
         TextView user_name = header.findViewById(R.id.user_name);
         user_name.setText(login.getDisplayName());
 
+        //Send the current user to the FirebaseNotifications service
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor prefEdit = pref.edit();
+        prefEdit.putString("email", login.getEmail());
+        prefEdit.commit();
+
+
+        //Get the notes and display them on the screen
         getNotes(selectedDate);
 
 
@@ -503,6 +514,7 @@ public class MainActivity extends AppCompatActivity
             JSONObject data = new JSONObject();
             data.put("latitude", latitude + "");
             data.put("longitude", longitude + "");
+            data.put("user", login.getEmail());
             obj.put("data", data);
             server.postToTopic(obj, new Function<JSONObject>() {
                 @Override
