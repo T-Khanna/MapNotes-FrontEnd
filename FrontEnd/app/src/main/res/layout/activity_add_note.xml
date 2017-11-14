@@ -148,6 +148,35 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:src="@drawable/ic_location_on"
+            android:layout_alignParentLeft="true"
+            android:layout_marginRight="8dp"
+            android:id="@+id/pin_icon"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:id="@+id/location_text"
+            android:textSize="16sp"
+            android:layout_toRightOf="@+id/pin_icon"
+            android:text="Location: (Tap to change)"/>
+
+    </RelativeLayout>
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:background="@color/textColorSecondary"/>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:src="@drawable/ic_label"
             android:layout_centerVertical="true"
@@ -178,33 +207,6 @@
         android:layout_marginRight="8dp"
         app:tag_enable_cross="true"/>
 
-    <View
-        android:layout_width="fill_parent"
-        android:layout_height="1dp"
-        android:background="@color/textColorSecondary"/>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_location_on"
-            android:layout_alignParentLeft="true"
-            android:layout_marginRight="8dp"
-            android:id="@+id/pin_icon"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:id="@+id/location_text"
-            android:textSize="16sp"
-            android:layout_toRightOf="@+id/pin_icon"
-            android:text="Location: (Tap to change)"/>
-
-    </RelativeLayout>
 
 </LinearLayout>
 
