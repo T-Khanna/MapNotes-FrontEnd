@@ -287,7 +287,6 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onRefresh() {
                 getNotes(selectedDate);
-                filter(filterTags);
             }
         });
 
