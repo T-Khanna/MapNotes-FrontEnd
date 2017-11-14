@@ -75,7 +75,7 @@ import mapnotes.mapnotes.data_classes.Note;
 import mapnotes.mapnotes.data_classes.Time;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
 
     private GoogleMap mMap;
     private SeekBar timeSlider;
@@ -202,6 +202,7 @@ public class MainActivity extends AppCompatActivity
         //Disable Map Toolbar:
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
+        mMap.setOnInfoWindowClickListener(this);
 
         getLocation(new Function<Location>() {
             @Override
@@ -234,22 +235,6 @@ public class MainActivity extends AppCompatActivity
                 selectedDate.setTime(selectedTime);
                 getNotes(selectedDate);
                 sliderText.setVisibility(View.GONE);
-            }
-        });
-
-        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                if (marker.equals(lastMarker)) {
-                    Intent i = new Intent(MainActivity.this, NoteDisplayActivity.class);
-                    i.putExtra("loginEmail", login.getEmail());
-                    Note note = (Note) marker.getTag();
-                    i.putExtra("note", note);
-                    marker.remove();
-                    startActivityForResult(i, REQUEST_EDIT_NOTE);
-                }
-                lastMarker = marker;
-                return false;
             }
         });
 
@@ -341,10 +326,7 @@ public class MainActivity extends AppCompatActivity
                                 }
 
                                 if (found) {
-                                    Marker marker = mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
-                                    marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_note));
-                                    marker.setTag(note);
-                                    newNotes.put(note, marker);
+                                    addNoteMarker(note, newNotes);
                                 } else {
                                     newNotes.put(note, null);
                                 }
@@ -461,10 +443,7 @@ public class MainActivity extends AppCompatActivity
                     }
                 });
 
-                Marker marker = mMap.addMarker(new MarkerOptions().position(newNote.getLocation()).title(newNote.getTitle()));
-                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_note));
-                marker.setTag(newNote);
-                notes.put(newNote, marker);
+                addNoteMarker(newNote);
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
 
                 //Send a push notification to other users
@@ -477,12 +456,8 @@ public class MainActivity extends AppCompatActivity
             if (resultCode == RESULT_OK) {
                 final Note newNote = data.getParcelableExtra("note");
 
-                Marker marker = mMap.addMarker(new MarkerOptions().position(newNote.getLocation()).title(newNote.getTitle()));
-                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_note));
-                marker.setTag(newNote);
+                addNoteMarker(newNote);
 
-                //Add note to class variable notes
-                notes.put(newNote, marker);
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
             }
         }
@@ -569,14 +544,34 @@ public class MainActivity extends AppCompatActivity
             } else {
                 //If we should show this note, make sure the marker for it exists
                 if (marker == null) {
-                    marker = mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
-                    marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_note));
-                    marker.setTag(note);
+                    addNoteMarker(note, newNotes);
                 }
-                newNotes.put(note, marker);
             }
         }
         notes = newNotes;
     }
 
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        Intent i = new Intent(MainActivity.this, NoteDisplayActivity.class);
+        i.putExtra("loginEmail", login.getEmail());
+        Note note = (Note) marker.getTag();
+        i.putExtra("note", note);
+        marker.remove();
+        startActivityForResult(i, REQUEST_EDIT_NOTE);
+    }
+
+    private Marker addNoteMarker(Note note) {
+        return addNoteMarker(note, notes);
+    }
+
+    private Marker addNoteMarker(Note note, Map<Note, Marker> notes) {
+        Marker marker = mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
+        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_note));
+        marker.setTag(note);
+
+        //Add note to class variable notes
+        notes.put(note, marker);
+        return marker;
+    }
 }
