@@ -51,7 +51,7 @@ public class NoteDisplayActivity extends FragmentActivity {
         String loginEmail = i.getStringExtra("loginEmail");
 
         ImageView editButton = findViewById(R.id.edit_button);
-        if (thisNote.getUserEmail().equals(loginEmail)) {
+        if (thisNote.getUserEmail().contains(loginEmail)) {
             editButton.setVisibility(View.VISIBLE);
             editButton.setOnClickListener(new View.OnClickListener() {
                 @Override

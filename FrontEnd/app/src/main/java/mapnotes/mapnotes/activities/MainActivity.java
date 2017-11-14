@@ -287,6 +287,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onRefresh() {
                 getNotes(selectedDate);
+                filter(filterTags);
             }
         });
 
@@ -331,10 +332,23 @@ public class MainActivity extends AppCompatActivity
                             for (int i = 0; i < array.length(); i++) {
                                 JSONObject jsonNote = array.getJSONObject(i);
                                 Note note = new Note(jsonNote);
-                                Marker marker = mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
-                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_note));
-                                marker.setTag(note);
-                                newNotes.put(note, marker);
+
+                                boolean found = false;
+                                if (filterTags == null || filterTags.size() == 0) found = true;
+                                for (String tag : note.getTags()) {
+                                    if (filterTags.contains(tag)) {
+                                        found = true;
+                                    }
+                                }
+
+                                if (found) {
+                                    Marker marker = mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
+                                    marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_note));
+                                    marker.setTag(note);
+                                    newNotes.put(note, marker);
+                                } else {
+                                    newNotes.put(note, null);
+                                }
                             }
                             notes = newNotes;
                             refresh.setRefreshing(false);
