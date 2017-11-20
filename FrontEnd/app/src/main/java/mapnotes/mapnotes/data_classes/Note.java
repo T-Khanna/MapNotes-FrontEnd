@@ -121,7 +121,7 @@ public class Note implements Parcelable {
                 location != null;
     }
 
-    //Parcelable section ---------------------------------------------------------------------------
+    //Parcelable section --------------------------------------------------------------------------
 
     @Override
     public int describeContents() {
