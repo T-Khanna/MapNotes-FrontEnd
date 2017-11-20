@@ -75,6 +75,7 @@ public class AddNoteActivity extends FragmentActivity {
         LatLng location = null;
         if (i.hasExtra("location")) {
             location = i.getParcelableExtra("location");
+            thisNote.setLocation(location);
         }
 
         //Set up local variables

@@ -10,6 +10,7 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -117,6 +118,12 @@ public class NoteDisplayActivity extends FragmentActivity {
 
             //Tags
             TagContainerLayout tagContainerLayout = findViewById(R.id.tag_view);
+            RelativeLayout tagContainer = findViewById(R.id.tag_container);
+            if (thisNote.getTags() == null || thisNote.getTags().size() == 0) {
+                tagContainer.setVisibility(View.GONE);
+            } else {
+                tagContainer.setVisibility(View.VISIBLE);
+            }
             tagContainerLayout.setTags(new LinkedList<String>(thisNote.getTags()));
         } else {
             finish();
