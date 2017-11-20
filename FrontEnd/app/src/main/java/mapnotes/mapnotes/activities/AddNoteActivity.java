@@ -249,6 +249,8 @@ public class AddNoteActivity extends FragmentActivity {
 
             tags = new LinkedList<>(thisNote.getTags());
             tagContainerLayout.setTags(tags);
+        } else {
+            locationText.setText(getAddress(location));
         }
 
 
@@ -290,6 +292,21 @@ public class AddNoteActivity extends FragmentActivity {
         dateView.setText(date);
 
         timeView.setText(time.getTime().toString());
+    }
+
+    private String getAddress(LatLng location) {
+        Geocoder geocoder = new Geocoder(getApplicationContext());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1);
+            if (addresses.size() > 0) {
+                String address = addresses.get(0).getAddressLine(0);
+                return address;
+            } else {
+                return location.latitude + ", " + location.longitude;
+            }
+        } catch (IOException e) {
+            return location.latitude + ", " + location.longitude;
+        }
     }
 
 }

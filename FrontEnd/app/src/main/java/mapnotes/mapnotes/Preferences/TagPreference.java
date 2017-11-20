@@ -121,7 +121,7 @@ public class TagPreference extends DialogPreference {
             tags = setToList(this.getPersistedStringSet(new HashSet<String>()));
         } else {
             // Set default state from the XML attribute
-            tags = (List<String>) defaultValue;
+            tags = setToList((Set<String>) defaultValue);
             persistStringSet(listToSet(tags));
         }
     }

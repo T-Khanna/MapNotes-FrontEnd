@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcel;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -179,6 +180,28 @@ public class MainActivity extends AppCompatActivity
             //Open the preferences activity
             Intent i = new Intent(MainActivity.this, SettingsActivity.class);
             startActivity(i);
+        } else if (id == R.id.nav_history) {
+            String query = "api/notes/user/" + login.getEmail();
+            server.getJSONRequest(query, null, new Function<JSONObject>() {
+                @Override
+                public void run(JSONObject input) {
+                    try {
+                        JSONArray notes = input.getJSONArray("Notes");
+                        LinkedList<Note> noteList = new LinkedList<>();
+                        for (int i = 0; i < notes.length(); i++) {
+                            noteList.add(new Note(notes.getJSONObject(i)));
+                        }
+
+                        //Open history activity
+                        Intent i = new Intent(MainActivity.this, HistoryActivity.class);
+                        i.putExtra("notes", noteList);
+                        i.putExtra("email", login.getEmail());
+                        startActivity(i);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

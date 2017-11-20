@@ -5,36 +5,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-    <CheckBox
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:padding="8dp"
-        android:id="@+id/own_notes_checkbox"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/own_notes_text"
-        android:padding="8dp"
-        android:textSize="18sp"
-        android:text="Only show your notes?"/>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="@color/textColorSecondary"
-        android:id="@+id/border"
-        android:layout_below="@id/own_notes_text"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Filter by tags:"
         android:textSize="18sp"
-        android:layout_below="@+id/border"
         android:padding="8dp"
         android:id="@+id/filter_text"/>
 

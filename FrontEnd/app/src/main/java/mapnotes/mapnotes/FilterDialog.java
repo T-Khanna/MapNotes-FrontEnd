@@ -25,7 +25,6 @@ import mapnotes.mapnotes.data_classes.Function;
 
 public class FilterDialog extends Dialog {
 
-    CheckBox checkBox;
     TagContainerLayout tagLayout;
     private List<String> tags;
 
@@ -37,7 +36,6 @@ public class FilterDialog extends Dialog {
         setContentView(inflater.inflate(R.layout.filter_dialog, null));
 
         tagLayout = findViewById(R.id.filter_tags);
-        checkBox = findViewById(R.id.own_notes_checkbox);
 
         //Tags
         final EditText tagText = findViewById(R.id.tag_to_add);

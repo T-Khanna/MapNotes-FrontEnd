@@ -82,6 +82,11 @@ public class SelectLocationActivity extends FragmentActivity implements OnMapRea
 
         }
 
+        if (eventLocation != null) {
+            mMap.addMarker(new MarkerOptions().position(eventLocation));
+            getAddress(eventLocation);
+        }
+
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
