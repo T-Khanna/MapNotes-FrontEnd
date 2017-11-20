@@ -73,6 +73,8 @@ public class SelectLocationActivity extends FragmentActivity implements OnMapRea
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.getUiSettings().setMapToolbarEnabled(false);
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -113,8 +115,9 @@ public class SelectLocationActivity extends FragmentActivity implements OnMapRea
                     locationText.setText(address);
                     bottomLayout.setVisibility(View.VISIBLE);
                 } else {
-                    bottomLayout.setVisibility(View.GONE);
-                    Toast.makeText(getApplicationContext(), "Can't find an address for that location", Toast.LENGTH_LONG).show();
+                    actualLocation = latLng.latitude + ", " + latLng.longitude;
+                    locationText.setText(actualLocation);
+                    bottomLayout.setVisibility(View.VISIBLE);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
