@@ -463,6 +463,17 @@ public class MainActivity extends AppCompatActivity
                                 e.printStackTrace();
                             }
                         }
+                        if (input.has("Merge")) {
+                            boolean hasAggregatedNotes = false;
+                            try {
+                                hasAggregatedNotes = input.getBoolean("Merge");
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            if (hasAggregatedNotes) {
+                                getNotes(selectedDate);
+                            }
+                        }
                     }
                 });
 
