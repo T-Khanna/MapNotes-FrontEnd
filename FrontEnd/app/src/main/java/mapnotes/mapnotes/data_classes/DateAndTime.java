@@ -87,7 +87,7 @@ public class DateAndTime implements Serializable {
     }
 
     public static DateAndTime fromString(String utc) {
-        SimpleDateFormat inputFmt = new SimpleDateFormat("yyyy-M-d'T'HH:mm:ss'Z'");
+        SimpleDateFormat inputFmt = new SimpleDateFormat("yyyy-M-d HH:mm:ss");
         try {
             Date d = inputFmt.parse(utc);
             Calendar calendar = Calendar.getInstance();

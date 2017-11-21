@@ -52,7 +52,7 @@ public class NoteDisplayActivity extends FragmentActivity {
         String loginEmail = i.getStringExtra("loginEmail");
 
         ImageView editButton = findViewById(R.id.edit_button);
-        if (thisNote.getUserEmail().contains(loginEmail)) {
+        if (thisNote.userIsMemberOf(loginEmail)) {
             editButton.setVisibility(View.VISIBLE);
             editButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -80,6 +80,8 @@ public class NoteDisplayActivity extends FragmentActivity {
         //Try and find location to zoom into and set initial marker
 
         if (thisNote != null) {
+
+            //Location
             Geocoder geocoder;
             final LatLng location = thisNote.getLocation();
             List<Address> addresses;

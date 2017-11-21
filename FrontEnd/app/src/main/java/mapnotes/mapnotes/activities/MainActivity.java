@@ -74,6 +74,7 @@ import mapnotes.mapnotes.data_classes.DateAndTime;
 import mapnotes.mapnotes.data_classes.Function;
 import mapnotes.mapnotes.data_classes.Note;
 import mapnotes.mapnotes.data_classes.Time;
+import mapnotes.mapnotes.data_classes.User;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
@@ -448,8 +449,8 @@ public class MainActivity extends AppCompatActivity
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 final Note newNote = data.getParcelableExtra("note");
-                Set<String> users = new HashSet<>();
-                users.add(login.getEmail());
+                HashSet<User> users = new HashSet<>();
+                users.add(new User(login.getDisplayName(), login.getEmail(), 0));
                 newNote.setUserEmail(users);
                 JSONObject params = newNote.toJson();
 
