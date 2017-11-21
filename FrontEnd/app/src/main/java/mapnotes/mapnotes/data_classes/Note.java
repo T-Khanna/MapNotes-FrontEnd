@@ -28,10 +28,10 @@ public class Note implements Parcelable {
     private DateAndTime endTime = null;
     private Integer id = null;
     private Set<String> tags = new HashSet<>();
-    private Set<String> userEmails = new HashSet<>();
+    private HashSet<User> users = new HashSet<>();
 
     public Note(String title, String description, LatLng location, DateAndTime time,
-                DateAndTime endTime, int id, Set<String> tags, Set<String> emails) {
+                DateAndTime endTime, int id, Set<String> tags, HashSet<User> users) {
         this.title = title;
         this.description = description;
         this.location = location;
@@ -39,15 +39,15 @@ public class Note implements Parcelable {
         this.endTime = endTime;
         this.id = id;
         this.tags = tags;
-        userEmails = emails;
+        this.users = users;
     }
 
-    public Set<String> getUserEmail() {
-        return userEmails;
+    public Set<User> getUserEmail() {
+        return users;
     }
 
-    public void setUserEmail(Set<String> userEmail) {
-        this.userEmails = userEmail;
+    public void setUserEmail(HashSet<User> userEmail) {
+        this.users = userEmail;
     }
 
     public Note() {}
@@ -108,6 +108,13 @@ public class Note implements Parcelable {
         return tags;
     }
 
+    public boolean userIsMemberOf(String userEmail) {
+        for (User user : users) {
+            if (user.getEmail().equals(userEmail)) return true;
+        }
+        return false;
+    }
+
     public boolean hasTag(String tag) {
         return tags.contains(tag);
     }
@@ -136,7 +143,10 @@ public class Note implements Parcelable {
         bundle.putSerializable("endTime", endTime);
         bundle.putString("title", title);
         bundle.putString("description", description);
-        bundle.putStringArray("user_email", userEmails.toArray(new String[0]));
+        //User[] userArray = users.toArray(new User[0]);
+        //parcel.writeTypedArray(userArray, 0);
+        bundle.putSerializable("users", users);
+
         if (id != null) {
             bundle.putInt("id", id);
         }
@@ -147,18 +157,14 @@ public class Note implements Parcelable {
     }
 
     public Note(Parcel in) {
-        Bundle bundle = in.readBundle();
+        Bundle bundle = in.readBundle(getClass().getClassLoader());
         title = bundle.getString("title");
         description = bundle.getString("description");
         time = (DateAndTime) bundle.getSerializable("time");
         endTime = (DateAndTime) bundle.getSerializable("endTime");
         id = bundle.getInt("id");
-        String[] users = bundle.getStringArray("users");
-        if (users != null) {
-            for (String user : users) {
-                this.userEmails.add(user);
-            }
-        }
+
+        users = (HashSet<User>) bundle.getSerializable("users");
 
         String[] tags = bundle.getStringArray("tags");
         if (tags != null) {
@@ -182,7 +188,6 @@ public class Note implements Parcelable {
 
     //JSON Section ---------------------------------------------------------------------------------
 
-    //TODO ADD TAGS TO JSON
     public JSONObject toJson() {
         JSONObject jNote = new JSONObject();
         try {
@@ -195,10 +200,10 @@ public class Note implements Parcelable {
             jNote.put("longitude", location.longitude);
 
             JSONArray usersArr = new JSONArray();
-            for (String user : userEmails) {
+            for (User user : users) {
                 usersArr.put(user);
             }
-            jNote.put("users", usersArr);
+            //jNote.put("users", usersArr);
 
             JSONArray arr = new JSONArray();
             for (String tag : tags) {
@@ -225,11 +230,11 @@ public class Note implements Parcelable {
             endTime = DateAndTime.fromString(object.getString("end_time"));
 
             JSONArray userArray = object.getJSONArray("users");
-            Set<String> newUsers = new HashSet<>();
+            HashSet<User> newUsers = new HashSet<>();
             for (int i = 0; i < userArray.length(); i++) {
-                newUsers.add(userArray.getString(i));
+                newUsers.add(new User(userArray.getJSONObject(i)));
             }
-            userEmails = newUsers;
+            users = newUsers;
 
             JSONArray tagArray = object.getJSONArray("tags");
             Set<String> newTags = new HashSet<>();
