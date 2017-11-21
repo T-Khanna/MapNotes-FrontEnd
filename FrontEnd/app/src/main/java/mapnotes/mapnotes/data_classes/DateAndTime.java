@@ -90,7 +90,7 @@ public class DateAndTime implements Serializable {
         cal.set(Calendar.MINUTE, time.getMinute());
         cal.setTimeZone(TimeZone.getTimeZone("UTC"));
         Date time = cal.getTime();
-        SimpleDateFormat outputFmt = new SimpleDateFormat("yyyy-M-d HH:mm ZZZ");
+        SimpleDateFormat outputFmt = new SimpleDateFormat("yyyy-M-d HH:mm");
         return outputFmt.format(time);
     }
 
