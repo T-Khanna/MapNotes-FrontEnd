@@ -62,9 +62,9 @@ public class DateAndTime implements Serializable {
      * @return
      */
     public boolean after(DateAndTime otherTime) {
-        if (date.compareTo(otherTime.getDate()) >= 1) {
+        if (date.getDate() > otherTime.getDate().getDate()) {
             return true;
-        } else if (otherTime.getDate().compareTo(date) == 0){
+        } else if (otherTime.getDate().getDate() == date.getDate()){
             if (time.getHourOfDay() > otherTime.getTime().getHourOfDay()) {
                 return true;
             } else if (otherTime.getTime().getHourOfDay() == time.getHourOfDay()){

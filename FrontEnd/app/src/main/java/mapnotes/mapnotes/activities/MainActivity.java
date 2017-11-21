@@ -478,8 +478,14 @@ public class MainActivity extends AppCompatActivity
                     }
                 });
 
-                addNoteMarker(newNote);
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
+                long startTime = newNote.getTime().toLong() - 1200000;
+                long currentTime = selectedDate.toLong();
+                long endTime = newNote.getEndTime().toLong();
+
+                if (startTime <= currentTime && currentTime <= endTime) {
+                    addNoteMarker(newNote);
+                    mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
+                }
 
                 //Send a push notification to other users
                 if (newNote.getTags().size() > 0) {
