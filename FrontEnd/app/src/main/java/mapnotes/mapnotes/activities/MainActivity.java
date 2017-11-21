@@ -483,7 +483,7 @@ public class MainActivity extends AppCompatActivity
 
                 //Send a push notification to other users
                 if (newNote.getTags().size() > 0) {
-                    sendTopicUpdate(newNote.getTags(), newNote.getLocation().latitude, newNote.getLocation().longitude);
+                    sendTopicUpdate(newNote.getTags(), newNote);
                 }
             }
         } else if (requestCode == REQUEST_EDIT_NOTE) {
@@ -522,10 +522,9 @@ public class MainActivity extends AppCompatActivity
      * Tell other users that there is a new note with a tag that they are subscribed to
      *
      * @param tags - the topics to send the message to
-     * @param latitude - latitude of the note
-     * @param longitude - longitude of the note
+     * @param note - the note to send a notification for
      */
-    private void sendTopicUpdate(Set<String> tags, double latitude, double longitude) {
+    private void sendTopicUpdate(Set<String> tags, Note note) {
         JSONObject obj = new JSONObject();
         try {
             String conditions = "";
@@ -535,9 +534,11 @@ public class MainActivity extends AppCompatActivity
             conditions = conditions.substring(0, conditions.length() - 4);
             obj.put("condition", conditions);
             JSONObject data = new JSONObject();
-            data.put("latitude", latitude + "");
-            data.put("longitude", longitude + "");
+            data.put("latitude", note.getLocation().latitude + "");
+            data.put("longitude", note.getLocation().longitude + "");
             data.put("user", login.getEmail());
+            data.put("start_time", note.getTime().toLong() + "");
+            data.put("end_time", note.getEndTime().toLong() + "");
             obj.put("data", data);
             server.postToTopic(obj, new Function<JSONObject>() {
                 @Override

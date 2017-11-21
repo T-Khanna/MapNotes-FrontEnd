@@ -74,6 +74,14 @@ public class DateAndTime implements Serializable {
         return false;
     }
 
+    public long toLong() {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, time.getHourOfDay());
+        cal.set(Calendar.MINUTE, time.getMinute());
+        return cal.getTimeInMillis();
+    }
+
     @Override
     public String toString() {
         Calendar cal = Calendar.getInstance();

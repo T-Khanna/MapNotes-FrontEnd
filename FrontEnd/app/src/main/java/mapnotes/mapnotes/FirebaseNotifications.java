@@ -22,6 +22,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -67,12 +68,16 @@ public class FirebaseNotifications extends FirebaseMessagingService {
                                 Map<String, String> data = message.getData();
                                 double latitude = Double.valueOf(data.get("latitude"));
                                 double longitude = Double.valueOf(data.get("longitude"));
+                                long start_time = Long.valueOf(data.get("start_time"));
+                                long end_time = Long.valueOf(data.get("end_time"));
                                 String user = data.get("user");
                                 float[] results = new float[1];
                                 Location.distanceBetween(location.getLatitude(), location.getLongitude(),
                                         latitude, longitude, results);
 
-                                if (results[0] < 1000 && email != null && !email.equals(user)) {
+                                long currentTime = Calendar.getInstance().getTimeInMillis();
+                                if (results[0] < 1000 && email != null && !email.equals(user)
+                                        && currentTime >= start_time && currentTime <= end_time) {
                                     sendNotification("New event less than 1 km away!");
                                 }
                             }
