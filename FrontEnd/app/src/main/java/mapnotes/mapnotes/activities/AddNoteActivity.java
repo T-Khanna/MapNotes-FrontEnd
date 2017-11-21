@@ -93,8 +93,8 @@ public class AddNoteActivity extends FragmentActivity {
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                thisNote.setTitle(title.getText().toString());
-                thisNote.setDescription(description.getText().toString());
+                thisNote.setTitle(title.getText().toString().trim());
+                thisNote.setDescription(description.getText().toString().trim());
                 Calendar cal = Calendar.getInstance();
                 cal.add(Calendar.HOUR_OF_DAY, 1);
 
