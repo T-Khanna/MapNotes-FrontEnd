@@ -203,7 +203,7 @@ public class Note implements Parcelable {
             for (User user : users) {
                 usersArr.put(user);
             }
-            jNote.put("users", usersArr);
+            //jNote.put("users", usersArr);
 
             JSONArray arr = new JSONArray();
             for (String tag : tags) {
