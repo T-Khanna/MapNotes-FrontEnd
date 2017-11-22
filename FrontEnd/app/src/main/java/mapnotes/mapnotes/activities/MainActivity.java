@@ -593,10 +593,19 @@ public class MainActivity extends AppCompatActivity
         notes = newNotes;
     }
 
+    /**
+     * Given a specific marker, open up the note information page corresponding to
+     * that marker
+     * @param marker marker that user clicked on
+     */
     @Override
     public void onInfoWindowClick(Marker marker) {
         Intent i = new Intent(MainActivity.this, NoteDisplayActivity.class);
         i.putExtra("loginEmail", login.getEmail());
+        if (login.getPhotoUrl() != null) {
+            i.putExtra("profile_picture", login.getPhotoUrl().toString());
+        }
+        i.putExtra("display_name", login.getDisplayName());
         Note note = (Note) marker.getTag();
         i.putExtra("note", note);
         marker.remove();

@@ -4,6 +4,7 @@
     android:background="@color/textColorSecondary"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
+    android:id="@+id/full_note_view"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <RelativeLayout
@@ -50,13 +51,15 @@
             android:textSize="25sp"/>
     </RelativeLayout>
 
-    <ScrollView
+    <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            android:layout_marginBottom="2dp"
             android:orientation="vertical">
 
             <LinearLayout
@@ -153,24 +156,21 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
+                    android:padding="12dp"
+                    android:textSize="15dp"
                     android:id="@+id/description"/>
             </LinearLayout>
 
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="5dp"
-                android:background="@color/textColorSecondary"
-                android:layout_marginBottom="8dp"
-                android:layout_marginTop="8dp"/>
 
             <RelativeLayout
                 android:id="@+id/tag_container"
                 android:layout_width="match_parent"
                 android:paddingTop="8dp"
                 android:paddingBottom="8dp"
+                android:layout_marginTop="8dp"
                 android:background="@color/textColorPrimary"
                 android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
                 android:layout_marginBottom="2dp"
                 android:elevation="2dp">
 
@@ -186,6 +186,7 @@
                 <co.lujun.androidtagview.TagContainerLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
                     android:id="@+id/tag_view"
                     android:layout_toRightOf="@+id/tag_icon"
                     android:padding="8dp"
@@ -193,9 +194,31 @@
                     android:layout_marginLeft="16dp"/>
             </RelativeLayout>
 
+            <android.support.v7.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:nestedScrollingEnabled="false"
+                android:elevation="2dp"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="8dp"
+                android:id="@+id/comments"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:textSize="14dp"
+                android:textAlignment="center"
+                android:id="@+id/view_all_comments"
+                android:visibility="gone"
+                android:layout_marginBottom="8dp"
+                android:text="View all comments"/>
+
+            <include layout="@layout/add_comment_layout"/>
+
         </LinearLayout>
 
-    </ScrollView>
+    </android.support.v4.widget.NestedScrollView>
 
 </LinearLayout>
 
