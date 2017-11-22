@@ -198,20 +198,20 @@
                 android:layout_width="match_parent"
                 android:nestedScrollingEnabled="false"
                 android:elevation="2dp"
-                android:layout_marginBottom="2dp"
                 android:layout_marginTop="8dp"
                 android:id="@+id/comments"
                 android:layout_height="wrap_content"/>
 
             <TextView
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textStyle="bold"
                 android:textSize="14dp"
-                android:textAlignment="center"
+                android:layout_gravity="center_horizontal"
                 android:id="@+id/view_all_comments"
                 android:visibility="gone"
-                android:layout_marginBottom="8dp"
+                android:paddingBottom="8dp"
+                android:paddingTop="2dp"
                 android:text="View all comments"/>
 
             <include layout="@layout/add_comment_layout"/>

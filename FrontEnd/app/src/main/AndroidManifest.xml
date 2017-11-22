@@ -44,12 +44,8 @@
             android:name=".activities.LoginActivity"
             android:label="@string/title_activity_login">
         </activity>
-        <activity android:name=".activities.GoogleSignIn">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
+        <activity android:name=".activities.GoogleSignInActivity"
+            android:label="Login">
         </activity>
         <activity
             android:name=".activities.MainActivity"
@@ -79,6 +75,14 @@
             android:name=".activities.HistoryActivity"
             android:label="@string/title_activity_history"
             android:parentActivityName=".activities.MainActivity">
+        </activity>
+        <activity android:name=".activities.SplashScreenActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
         </activity>
     </application>
 

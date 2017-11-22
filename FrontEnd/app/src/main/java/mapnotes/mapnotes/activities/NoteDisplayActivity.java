@@ -102,28 +102,27 @@ public class NoteDisplayActivity extends FragmentActivity {
         comments.add(new Comment("Tom Allerton", "This was a really cool event! I'm happy with how it went and the people were fantastic!", profilePicture));
         comments.add(new Comment("Tom Allerton", "This was a really cool event! I'm happy with how it went and the people were fantastic!", profilePicture));
         comments.add(new Comment("Tom Allerton", "This was a really cool event! I'm happy with how it went and the people were fantastic!", profilePicture));
-        comments.add(new Comment("Tom Allerton", "This was a really cool event! I'm happy with how it went and the people were fantastic!", profilePicture));
-        comments.add(new Comment("Tom Allerton", "This was a really cool event! I'm happy with how it went and the people were fantastic!", profilePicture));
         mRecyclerView = (RecyclerView) findViewById(R.id.comments);
 
-        // use a linear layout manager
+        //Use a linear layout manager
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        // specify an adapter (see also next example)
+        //Set up view all button
+        TextView viewAll = findViewById(R.id.view_all_comments);
+        viewAll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showPopup();
+            }
+        });
+
         //Decide whether to show all comments or not
         if (comments.size() <= 5) {
             mAdapter = new CommentAdapter(comments, this);
         } else {
             mAdapter = new CommentAdapter(comments.subList(0, 5), this);
-            TextView viewAll = findViewById(R.id.view_all_comments);
             viewAll.setVisibility(View.VISIBLE);
-            viewAll.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    showPopup();
-                }
-            });
         }
 
         mRecyclerView.setAdapter(mAdapter);
@@ -152,6 +151,9 @@ public class NoteDisplayActivity extends FragmentActivity {
                         List<Comment> newComments = comments.subList(0, 5);
                         adapter.setmDataset(newComments);
                         adapter.notifyDataSetChanged();
+                        if (comments.size() > 5) {
+                            findViewById(R.id.view_all_comments).setVisibility(View.VISIBLE);
+                        }
                     } else {
                         adapter.addElement();
                         adapter.notifyItemInserted(0);
