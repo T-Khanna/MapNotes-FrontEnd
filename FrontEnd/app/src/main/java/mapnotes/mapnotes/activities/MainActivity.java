@@ -210,6 +210,7 @@ public class MainActivity extends AppCompatActivity
                 }
             });
         } else if (id == R.id.sign_out) {
+            //Sign out button, sign out and return to login page
             Intent i = getIntent();
             GoogleSignInOptions gso = i.getParcelableExtra("googleSignInOptions");
             googleSignInClient = GoogleSignIn.getClient(this, gso);
@@ -246,6 +247,11 @@ public class MainActivity extends AppCompatActivity
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
         mMap.setOnInfoWindowClickListener(this);
+
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermission(Manifest.permission.ACCESS_FINE_LOCATION, REQUEST_ACCESS_LOCATION,
+                    "Want location to allow you to easily see where you are");
+        }
 
         getLocation(new Function<Location>() {
             @Override
@@ -446,7 +452,7 @@ public class MainActivity extends AppCompatActivity
                     .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            requestPermission(permission, request_code, rationale);
+                            ActivityCompat.requestPermissions(MainActivity.this, new String[]{permission}, request_code);
                         }
                     }).setTitle("Requesting Permission").create().show();
 
