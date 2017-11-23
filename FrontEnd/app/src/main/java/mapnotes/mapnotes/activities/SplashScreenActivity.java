@@ -22,6 +22,7 @@ public class SplashScreenActivity extends AppCompatActivity {
 
     private GoogleApiClient mGoogleApiClient;
     private final int RC_SIGN_IN = 0;
+    private GoogleSignInOptions gso;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +32,7 @@ public class SplashScreenActivity extends AppCompatActivity {
 
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken("371478445903-l0qtjdbu45ci2bobb5lhm41svvcbjc0u.apps.googleusercontent.com")
                 .requestEmail()
                 .build();
@@ -86,6 +87,7 @@ public class SplashScreenActivity extends AppCompatActivity {
             GoogleSignInAccount acct = result.getSignInAccount();
             Intent i = new Intent(this, MainActivity.class);
             i.putExtra("googleSignIn", acct);
+            i.putExtra("googleSignInOptions", gso);
             startActivity(i);
             finish();
         } else {

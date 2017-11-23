@@ -16,11 +16,13 @@ public class Comment {
     private String displayName;
     private String commentText;
     private Uri profile_picture;
+    private int noteId;
 
-    public Comment(String displayName, String commentText, Uri profile_picture) {
+    public Comment(String displayName, String commentText, Uri profile_picture, int noteId) {
         this.displayName = displayName;
         this.commentText = commentText;
         this.profile_picture = profile_picture;
+        this.noteId = noteId;
     }
 
     public String getDisplayName() {
@@ -49,11 +51,24 @@ public class Comment {
 
     public Comment(JSONObject obj) {
         try {
-            displayName = obj.getString("display_name");
             commentText = obj.getString("comment");
-            profile_picture = Uri.parse(obj.getString("profile_picture"));
+            JSONObject userobj = obj.getJSONObject("user");
+            User user = new User(userobj);
+            profile_picture = Uri.parse(userobj.getString("picture"));
+            displayName = user.getDisplayname();
         } catch (JSONException e) {
             return;
+        }
+    }
+
+    public JSONObject toJSON() {
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("comment", commentText);
+            obj.put("noteid", noteId);
+            return obj;
+        } catch (JSONException e) {
+            return null;
         }
     }
 }

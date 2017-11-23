@@ -24,6 +24,7 @@ import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -32,6 +33,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -46,10 +48,12 @@ import co.lujun.androidtagview.TagContainerLayout;
 import mapnotes.mapnotes.CommentAdapter;
 import mapnotes.mapnotes.HistoryAdapter;
 import mapnotes.mapnotes.R;
+import mapnotes.mapnotes.Server;
 import mapnotes.mapnotes.data_classes.Comment;
 import mapnotes.mapnotes.data_classes.DateAndTime;
 import mapnotes.mapnotes.data_classes.Function;
 import mapnotes.mapnotes.data_classes.Note;
+import mapnotes.mapnotes.data_classes.User;
 
 public class NoteDisplayActivity extends FragmentActivity {
 
@@ -62,6 +66,7 @@ public class NoteDisplayActivity extends FragmentActivity {
     private String displayName;
     private View overallView;
     private LinkedList<Comment> comments;
+    private Server server;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +95,8 @@ public class NoteDisplayActivity extends FragmentActivity {
 
         initialise();
 
+        server = new Server(this, i.getStringExtra("login_id"));
+
         overallView = findViewById(R.id.full_note_view);
 
         profilePicture =  Uri.parse(i.getStringExtra("profile_picture"));
@@ -97,11 +104,24 @@ public class NoteDisplayActivity extends FragmentActivity {
 
         //Create list of comments
         comments = new LinkedList<>();
-        //TODO: Get comments from the server and populate when ready
-        comments.add(new Comment("Thomas Allerton", "Testing the comments feature!", profilePicture));
-        comments.add(new Comment("Tom Allerton", "This was a really cool event! I'm happy with how it went and the people were fantastic!", profilePicture));
-        comments.add(new Comment("Tom Allerton", "This was a really cool event! I'm happy with how it went and the people were fantastic!", profilePicture));
-        comments.add(new Comment("Tom Allerton", "This was a really cool event! I'm happy with how it went and the people were fantastic!", profilePicture));
+        server.getJSONRequest("api/comments/" + thisNote.getId(), null, new Function<JSONObject>() {
+            @Override
+            public void run(JSONObject input) {
+                try {
+                    if (input.has("comments")) {
+                        JSONArray jsonComments = input.getJSONArray("comments");
+                        for (int i = 0; i < jsonComments.length(); i++) {
+                            JSONObject obj = jsonComments.getJSONObject(i);
+                            comments.add(new Comment(obj));
+                        }
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+
         mRecyclerView = (RecyclerView) findViewById(R.id.comments);
 
         //Use a linear layout manager
@@ -146,9 +166,11 @@ public class NoteDisplayActivity extends FragmentActivity {
                     text = text.trim();
 
 
-                    comments.push(new Comment(displayName, text, profilePicture));
+                    Comment newComment = new Comment(displayName, text, profilePicture, thisNote.getId());
+                    comments.push(newComment);
                     if (!showAll) {
-                        List<Comment> newComments = comments.subList(0, 5);
+                        int length = comments.size() < 5 ? comments.size() : 5;
+                        List<Comment> newComments = comments.subList(0, length);
                         adapter.setmDataset(newComments);
                         adapter.notifyDataSetChanged();
                         if (comments.size() > 5) {
@@ -159,8 +181,12 @@ public class NoteDisplayActivity extends FragmentActivity {
                         adapter.notifyItemInserted(0);
                     }
 
+                    server.postJSONRequest("api/comments", newComment.toJSON(), new Function<JSONObject>() {
+                        @Override
+                        public void run(JSONObject input) {
 
-                    //TODO: Send comment to server
+                        }
+                    });
 
                     comment.setText("");
                 }

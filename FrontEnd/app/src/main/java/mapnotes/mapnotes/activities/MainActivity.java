@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -35,7 +36,10 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.google.android.gms.ads.formats.NativeAd;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -46,7 +50,9 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -96,6 +102,7 @@ public class MainActivity extends AppCompatActivity
     private GoogleSignInAccount login;
     private ImageView location;
     private List<String> filterTags = new LinkedList<>();
+    private GoogleSignInClient googleSignInClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,7 +156,6 @@ public class MainActivity extends AppCompatActivity
         //Get the notes and display them on the screen
         getNotes(selectedDate);
 
-
     }
 
     @Override
@@ -201,6 +207,19 @@ public class MainActivity extends AppCompatActivity
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                }
+            });
+        } else if (id == R.id.sign_out) {
+            Intent i = getIntent();
+            GoogleSignInOptions gso = i.getParcelableExtra("googleSignInOptions");
+            googleSignInClient = GoogleSignIn.getClient(this, gso);
+
+            googleSignInClient.signOut().addOnCompleteListener(this, new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    Intent i = new Intent(MainActivity.this, GoogleSignInActivity.class);
+                    startActivity(i);
+                    finish();
                 }
             });
         }
@@ -608,6 +627,7 @@ public class MainActivity extends AppCompatActivity
         i.putExtra("display_name", login.getDisplayName());
         Note note = (Note) marker.getTag();
         i.putExtra("note", note);
+        i.putExtra("login_id", login.getIdToken());
         marker.remove();
         startActivityForResult(i, REQUEST_EDIT_NOTE);
     }
