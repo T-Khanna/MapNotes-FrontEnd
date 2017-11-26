@@ -1,38 +1,29 @@
 package mapnotes.mapnotes.activities;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.DialogFragment;
+import android.content.ClipData;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
-import android.location.Location;
-import android.location.LocationManager;
 import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
+import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -57,7 +48,9 @@ public class AddNoteActivity extends FragmentActivity {
     private TextView startDate;
     private TextView endDate;
     private List<String> tags = new LinkedList<>();
+    private LinearLayout addedImages;
     private final int REQUEST_LOCATION = 12786;
+    private final int REQUEST_IMAGE = 1763;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -228,6 +221,22 @@ public class AddNoteActivity extends FragmentActivity {
             }
         });
 
+        final ImageButton addImage = findViewById(R.id.add_image);
+        addedImages = findViewById(R.id.image_scroll);
+
+        addImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent();
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                startActivityForResult(Intent.createChooser(intent,
+                        "Select Picture"), REQUEST_IMAGE);
+            }
+        });
+
+
         final TextView locationText = findViewById(R.id.location_text);
 
         //Check if we are editing a note
@@ -284,6 +293,38 @@ public class AddNoteActivity extends FragmentActivity {
                 locationText.setText(address);
             }
         }
+        if (requestCode == REQUEST_IMAGE) {
+            if (resultCode == RESULT_OK) {
+                // Check if multiple images were sent. If multiple images were sent
+                // the data INTENT object is null
+                if (data.getData() == null) {
+                    // Retrieve the collection of selected images from the clip field
+                    // in the intent
+                    ClipData images = data.getClipData();
+                    for (int i = 0; i < images.getItemCount(); i++) {
+                        Uri uri = images.getItemAt(i).getUri();
+                        addImage(uri);
+                    }
+                } else {
+                    // We are only dealing with one image sent through the data field
+                    // in the intent
+                    Uri selectedImageUri = data.getData();
+                    addImage(selectedImageUri);
+                }
+            }
+        }
+    }
+
+    private void addImage(Uri selectedImageUri) {
+        final ImageView imageToAdd = new ImageView(this);
+        imageToAdd.setPadding(2, 2, 2, 2);
+        imageToAdd.setAdjustViewBounds(true);
+        imageToAdd.setMaxWidth(300);
+        imageToAdd.setMaxHeight(300);
+        Glide.with(this)
+                .load(selectedImageUri)
+                .into(imageToAdd);
+        addedImages.addView(imageToAdd);
     }
 
     private void updateTimes(TextView dateView, TextView timeView, DateAndTime time) {
