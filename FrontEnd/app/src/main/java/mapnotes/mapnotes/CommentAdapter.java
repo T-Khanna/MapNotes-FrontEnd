@@ -33,12 +33,14 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
         public TextView displayName;
         public TextView comment;
         public ImageView profilePicture;
+        public TextView sentTime;
 
         public ViewHolder(View v) {
             super(v);
             displayName = v.findViewById(R.id.display_name);
             comment = v.findViewById(R.id.comment_text);
             profilePicture = v.findViewById(R.id.profile_picture);
+            sentTime = v.findViewById(R.id.timestamp);
         }
     }
 
@@ -81,6 +83,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
         holder.displayName.setText(comment.getDisplayName());
         holder.comment.setText(comment.getCommentText());
         Picasso.with(context).load(comment.getProfile_picture()).into(holder.profilePicture);
+        holder.sentTime.setText(comment.getSentText());
     }
 
     // Return the size of your dataset (invoked by the layout manager)

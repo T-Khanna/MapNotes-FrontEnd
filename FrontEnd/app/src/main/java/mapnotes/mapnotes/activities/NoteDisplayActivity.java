@@ -104,22 +104,7 @@ public class NoteDisplayActivity extends FragmentActivity {
 
         //Create list of comments
         comments = new LinkedList<>();
-        server.getJSONRequest("api/comments/" + thisNote.getId(), null, new Function<JSONObject>() {
-            @Override
-            public void run(JSONObject input) {
-                try {
-                    if (input.has("comments")) {
-                        JSONArray jsonComments = input.getJSONArray("comments");
-                        for (int i = 0; i < jsonComments.length(); i++) {
-                            JSONObject obj = jsonComments.getJSONObject(i);
-                            comments.add(new Comment(obj));
-                        }
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+
 
 
         mRecyclerView = (RecyclerView) findViewById(R.id.comments);
@@ -146,6 +131,25 @@ public class NoteDisplayActivity extends FragmentActivity {
         }
 
         mRecyclerView.setAdapter(mAdapter);
+
+        server.getJSONRequest("api/comments/" + thisNote.getId(), null, new Function<JSONObject>() {
+            @Override
+            public void run(JSONObject input) {
+                try {
+                    if (input.has("Comments")) {
+                        JSONArray jsonComments = input.getJSONArray("Comments");
+                        for (int i = 0; i < jsonComments.length(); i++) {
+                            JSONObject obj = jsonComments.getJSONObject(i);
+                            comments.add(new Comment(obj));
+                        }
+                        mAdapter.setmDataset(comments);
+                        mAdapter.notifyDataSetChanged();
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
         //Initialise adding comment
         final EditText comment = findViewById(R.id.edit_comment_text);

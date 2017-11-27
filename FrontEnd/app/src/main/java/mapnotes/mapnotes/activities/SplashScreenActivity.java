@@ -51,10 +51,7 @@ public class SplashScreenActivity extends AppCompatActivity {
 
         GoogleSignInAccount result = GoogleSignIn.getLastSignedInAccount(this);
         if (result != null) {
-            Intent i = new Intent(this, MainActivity.class);
-            i.putExtra("googleSignIn", result);
-            i.putExtra("googleSignInOptions", gso);
-            startActivity(i);
+            signIn();
         } else {
             Intent i = new Intent(this, GoogleSignInActivity.class);
             startActivity(i);

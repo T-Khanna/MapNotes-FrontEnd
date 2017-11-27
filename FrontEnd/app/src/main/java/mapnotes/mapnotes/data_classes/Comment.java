@@ -7,6 +7,7 @@ import org.json.JSONObject;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Calendar;
 
 /**
  * Created by Thomas on 22/11/2017.
@@ -17,12 +18,14 @@ public class Comment {
     private String commentText;
     private Uri profile_picture;
     private int noteId;
+    private DateAndTime sentTime;
 
     public Comment(String displayName, String commentText, Uri profile_picture, int noteId) {
         this.displayName = displayName;
         this.commentText = commentText;
         this.profile_picture = profile_picture;
         this.noteId = noteId;
+        sentTime = new DateAndTime(Calendar.getInstance());
     }
 
     public String getDisplayName() {
@@ -49,13 +52,18 @@ public class Comment {
         this.profile_picture = profile_picture;
     }
 
+    public String getSentText() {
+        return "Sent on " + sentTime.toSimpleString();
+    }
+
     public Comment(JSONObject obj) {
         try {
-            commentText = obj.getString("comment");
-            JSONObject userobj = obj.getJSONObject("user");
+            commentText = obj.getString("Comment");
+            JSONObject userobj = obj.getJSONObject("User");
             User user = new User(userobj);
-            profile_picture = Uri.parse(userobj.getString("picture"));
+            profile_picture = Uri.parse(userobj.getString("Picture"));
             displayName = user.getDisplayname();
+            sentTime = DateAndTime.fromString(obj.getString("Timestamp"));
         } catch (JSONException e) {
             return;
         }

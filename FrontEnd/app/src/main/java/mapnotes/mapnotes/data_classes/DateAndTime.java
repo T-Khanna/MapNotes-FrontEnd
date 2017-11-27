@@ -107,4 +107,15 @@ public class DateAndTime implements Serializable {
         return null;
     }
 
+    public String toSimpleString() {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, time.getHourOfDay());
+        cal.set(Calendar.MINUTE, time.getMinute());
+        cal.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Date time = cal.getTime();
+        SimpleDateFormat outputFmt = new SimpleDateFormat("MMM dd 'at' HH:mm");
+        return outputFmt.format(time);
+    }
+
 }
