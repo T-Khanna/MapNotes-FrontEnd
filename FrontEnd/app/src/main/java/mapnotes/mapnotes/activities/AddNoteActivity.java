@@ -4,13 +4,12 @@ import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.ClipData;
 import android.content.Intent;
-import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
-import android.provider.MediaStore;
-import android.support.v4.app.FragmentActivity;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -23,12 +22,23 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.model.LatLng;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import co.lujun.androidtagview.TagContainerLayout;
 import co.lujun.androidtagview.TagView;
@@ -39,6 +49,11 @@ import mapnotes.mapnotes.data_classes.DateAndTime;
 import mapnotes.mapnotes.data_classes.Function;
 import mapnotes.mapnotes.data_classes.Note;
 import mapnotes.mapnotes.data_classes.Time;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class AddNoteActivity extends FragmentActivity {
 
@@ -58,7 +73,6 @@ public class AddNoteActivity extends FragmentActivity {
         setContentView(R.layout.activity_add_note);
         initialise();
     }
-
 
 
     public void initialise() {
@@ -264,7 +278,6 @@ public class AddNoteActivity extends FragmentActivity {
         }
 
 
-
         final LatLng locationCopy = location;
         locationText.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -295,6 +308,7 @@ public class AddNoteActivity extends FragmentActivity {
         }
         if (requestCode == REQUEST_IMAGE) {
             if (resultCode == RESULT_OK) {
+                Log.d("Intent", data.toString());
                 // Check if multiple images were sent. If multiple images were sent
                 // the data INTENT object is null
                 if (data.getData() == null) {
@@ -303,19 +317,19 @@ public class AddNoteActivity extends FragmentActivity {
                     ClipData images = data.getClipData();
                     for (int i = 0; i < images.getItemCount(); i++) {
                         Uri uri = images.getItemAt(i).getUri();
-                        addImage(uri);
+                        addAndUploadImage(uri);
                     }
                 } else {
                     // We are only dealing with one image sent through the data field
                     // in the intent
                     Uri selectedImageUri = data.getData();
-                    addImage(selectedImageUri);
+                    addAndUploadImage(selectedImageUri);
                 }
             }
         }
     }
 
-    private void addImage(Uri selectedImageUri) {
+    private void addAndUploadImage(Uri selectedImageUri) {
         final ImageView imageToAdd = new ImageView(this);
         imageToAdd.setPadding(2, 2, 2, 2);
         imageToAdd.setAdjustViewBounds(true);
@@ -325,6 +339,112 @@ public class AddNoteActivity extends FragmentActivity {
                 .load(selectedImageUri)
                 .into(imageToAdd);
         addedImages.addView(imageToAdd);
+
+        String absolutePath = this.getFilesDir().getAbsolutePath();
+        File tempFile = new File(absolutePath, "temp_image");
+        try {
+            tempFile.createNewFile();
+            copyAndClose(this.getContentResolver().openInputStream(selectedImageUri), new FileOutputStream(tempFile));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Uri newUri = Uri.fromFile(tempFile);
+        Log.d("New Uri Path", newUri.getPath());
+        File imageFile = new File(newUri.getPath());
+        Log.d("File path", imageFile.getAbsolutePath());
+        try {
+            String link = new ImgurAPIAccess().execute(encodeFileToBase64Binary(imageFile)).get();
+            thisNote.addImageUrl(link);
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private class ImgurAPIAccess extends AsyncTask<String, Void, String> {
+
+        private final String clientId = "e6d087c58c469c5";
+        private final String clientSecret = "afd171d304e6f7216ba38381a560d3b298d4f23b";
+        private final String imgurURL = "https://api.imgur.com/3/image";
+
+        @Override
+        protected String doInBackground(String... strings) {
+            String result = "";
+            RequestBody body = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("image", strings[0])
+                    .build();
+            Request request = new Request.Builder()
+                    .addHeader("Authorization", "Client-ID " + clientId)
+                    .addHeader("Content-type", "multipart/form-data")
+                    .url(imgurURL)
+                    .post(body)
+                    .build();
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .connectTimeout(10, TimeUnit.SECONDS)
+                    .readTimeout(3, TimeUnit.MINUTES)
+                    .writeTimeout(5, TimeUnit.MINUTES)
+                    .build();
+            try {
+                Response response = client.newCall(request).execute();
+                if (!response.isSuccessful()) {
+                    Log.d("Imgur POST request", "Response Code: " + response.code());
+                    return result;
+                }
+                String responseBody = response.body().string();
+                if (responseBody != null) {
+                    JSONObject responseJSON = new JSONObject(responseBody);
+                    return responseJSON.getJSONObject("data").getString("link");
+                }
+            } catch (IOException | JSONException e) {
+                e.printStackTrace();
+            }
+            return result;
+        }
+    }
+
+    private String encodeFileToBase64Binary(File file) {
+        byte[] bytes = new byte[0];
+        try {
+            bytes = loadFile(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        byte[] encoded = Base64.encodeBase64(bytes);
+
+        return new String(encoded);
+    }
+
+    private static byte[] loadFile(File file) throws IOException {
+        FileInputStream is = new FileInputStream(file);
+
+        long length = file.length();
+        byte[] bytes = new byte[(int)length];
+        if (length > Integer.MAX_VALUE) {
+            throw new IOException("Image file is too large to load");
+        }
+
+        int offset = 0;
+        int numRead;
+        while (offset < bytes.length
+                && (numRead = is.read(bytes, offset, bytes.length-offset)) >= 0) {
+            offset += numRead;
+        }
+
+        if (offset < bytes.length) {
+            throw new IOException("Could not completely read file "+file.getName());
+        }
+
+        is.close();
+        return bytes;
+    }
+
+    private void copyAndClose(InputStream inputStream, FileOutputStream fileOutputStream) {
+        try {
+            IOUtils.copy(inputStream, fileOutputStream);
+            fileOutputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void updateTimes(TextView dateView, TextView timeView, DateAndTime time) {

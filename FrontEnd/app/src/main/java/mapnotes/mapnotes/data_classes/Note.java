@@ -29,6 +29,7 @@ public class Note implements Parcelable {
     private Integer id = null;
     private Set<String> tags = new HashSet<>();
     private HashSet<User> users = new HashSet<>();
+    private HashSet<String> imageUrls = new HashSet<>();
 
     public Note(String title, String description, LatLng location, DateAndTime time,
                 DateAndTime endTime, int id, Set<String> tags, HashSet<User> users) {
@@ -123,6 +124,10 @@ public class Note implements Parcelable {
         return tags.contains(tag);
     }
 
+    public boolean addImageUrl(String imageUrl) {
+        return imageUrls.add(imageUrl);
+    }
+
     public boolean isValid() {
         return title != null &&
                 !title.equals("") &&
@@ -155,7 +160,7 @@ public class Note implements Parcelable {
             bundle.putInt("id", id);
         }
         bundle.putStringArray("tags", tags.toArray(new String[0]));
-
+        bundle.putSerializable("images", imageUrls);
         parcel.writeBundle(bundle);
         parcel.writeParcelable(location, i);
     }
@@ -176,6 +181,9 @@ public class Note implements Parcelable {
                 this.tags.add(tag);
             }
         }
+
+        imageUrls = (HashSet<String>) bundle.getSerializable("images");
+
         location = in.readParcelable(LatLng.class.getClassLoader());
     }
 
@@ -215,6 +223,12 @@ public class Note implements Parcelable {
             }
             jNote.put("tags", arr);
 
+            JSONArray imagesArr = new JSONArray();
+            for (String imageUrl : imageUrls) {
+                imagesArr.put(imageUrl);
+            }
+            jNote.put("images", imagesArr);
+
             return jNote;
         } catch (JSONException e) {
             e.printStackTrace();
@@ -246,6 +260,14 @@ public class Note implements Parcelable {
                 newTags.add(tagArray.getString(i));
             }
             tags = newTags;
+
+            JSONArray imagesArr = object.getJSONArray("images");
+            HashSet<String> newImageUrls = new HashSet<>();
+            for (int i = 0; i < imagesArr.length(); i++) {
+                newImageUrls.add(imagesArr.getString(i));
+            }
+            imageUrls = newImageUrls;
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
