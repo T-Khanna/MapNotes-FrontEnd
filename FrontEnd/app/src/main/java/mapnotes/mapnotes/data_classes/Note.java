@@ -261,12 +261,12 @@ public class Note implements Parcelable {
             }
             tags = newTags;
 
-            JSONArray imagesArr = object.getJSONArray("images");
-            HashSet<String> newImageUrls = new HashSet<>();
-            for (int i = 0; i < imagesArr.length(); i++) {
-                newImageUrls.add(imagesArr.getString(i));
-            }
-            imageUrls = newImageUrls;
+//            JSONArray imagesArr = object.getJSONArray("images");
+//            HashSet<String> newImageUrls = new HashSet<>();
+//            for (int i = 0; i < imagesArr.length(); i++) {
+//                newImageUrls.add(imagesArr.getString(i));
+//            }
+//            imageUrls = newImageUrls;
 
         } catch (JSONException e) {
             e.printStackTrace();
