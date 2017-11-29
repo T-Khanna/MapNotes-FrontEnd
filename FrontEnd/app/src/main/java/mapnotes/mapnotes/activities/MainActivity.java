@@ -202,7 +202,12 @@ public class MainActivity extends AppCompatActivity
                         //Open history activity
                         Intent i = new Intent(MainActivity.this, HistoryActivity.class);
                         i.putExtra("notes", noteList);
-                        i.putExtra("email", login.getEmail());
+                        i.putExtra("loginEmail", login.getEmail());
+                        if (login.getPhotoUrl() != null) {
+                            i.putExtra("profile_picture", login.getPhotoUrl().toString());
+                        }
+                        i.putExtra("display_name", login.getDisplayName());
+                        i.putExtra("login_id", login.getIdToken());
                         startActivity(i);
                     } catch (JSONException e) {
                         e.printStackTrace();

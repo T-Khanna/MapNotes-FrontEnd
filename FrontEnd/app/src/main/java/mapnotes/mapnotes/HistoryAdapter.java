@@ -18,6 +18,9 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     private List<Note> mDataset;
     private Context context;
     private String email;
+    private String photoUrl;
+    private String displayName;
+    private String idToken;
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -28,7 +31,8 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
         public TextView summary;
         public Note note;
 
-        public ViewHolder(View v, final Context context, final String email) {
+        public ViewHolder(View v, final Context context, final String email, final String photoURL,
+                final String displayName, final String idToken) {
             super(v);
             title = v.findViewById(R.id.title);
             summary = v.findViewById(R.id.summary);
@@ -38,7 +42,12 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
                 public void onClick(View view) {
                     Intent i = new Intent(context, NoteDisplayActivity.class);
                     i.putExtra("note", note);
-                    i.putExtra("login", email);
+                    i.putExtra("loginEmail", email);
+                    if (photoURL != null) {
+                        i.putExtra("profile_picture", photoURL);
+                    }
+                    i.putExtra("display_name", displayName);
+                    i.putExtra("login_id", idToken);
                     context.startActivity(i);
                 }
             });
@@ -47,9 +56,14 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public HistoryAdapter(List<Note> myDataset, Context context) {
+    public HistoryAdapter(List<Note> myDataset, Context context, String email, String photoURL,
+                          String idToken, String displayName) {
         this.context = context;
         mDataset = myDataset;
+        this.email = email;
+        this.photoUrl = photoURL;
+        this.idToken = idToken;
+        this.displayName = displayName;
     }
 
     // Create new views (invoked by the layout manager)
@@ -62,7 +76,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
         // set the view's size, margins, paddings and layout parameters
 
 
-        ViewHolder vh = new ViewHolder(v, context, email);
+        ViewHolder vh = new ViewHolder(v, context, email, photoUrl, displayName, idToken);
         return vh;
     }
 

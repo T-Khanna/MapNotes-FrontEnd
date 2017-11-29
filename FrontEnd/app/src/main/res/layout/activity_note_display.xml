@@ -201,6 +201,8 @@
                 android:background="@color/textColorPrimary"
                 android:layout_marginTop="8dp"
                 android:padding="8dp"
+                android:id="@+id/horizontal_scroll_images"
+                android:visibility="gone"
                 android:elevation="2dp">
 
                 <LinearLayout

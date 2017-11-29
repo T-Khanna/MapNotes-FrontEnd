@@ -1,6 +1,7 @@
 package mapnotes.mapnotes.activities;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -25,6 +26,9 @@ public class HistoryActivity extends AppCompatActivity {
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+    private String loginID;
+    private String profilePicture;
+    private String displayName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +37,13 @@ public class HistoryActivity extends AppCompatActivity {
 
         Intent i = getIntent();
         ArrayList<Note> noteList = (ArrayList<Note>) i.getSerializableExtra("notes");
-        String email = i.getStringExtra("email");
+        String email = i.getStringExtra("loginEmail");
+        loginID = i.getStringExtra("login_id");
+
+        if (i.hasExtra("profile_picture")) {
+            profilePicture = i.getStringExtra("profile_picture");
+        }
+        displayName = i.getStringExtra("display_name");
 
         mRecyclerView = (RecyclerView) findViewById(R.id.note_history_view);
 
@@ -42,7 +52,7 @@ public class HistoryActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         // specify an adapter (see also next example)
-        mAdapter = new HistoryAdapter(noteList, this);
+        mAdapter = new HistoryAdapter(noteList, this, email, profilePicture, loginID, displayName);
         mRecyclerView.setAdapter(mAdapter);
     }
 

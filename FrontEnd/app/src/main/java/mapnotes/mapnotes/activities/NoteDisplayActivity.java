@@ -116,7 +116,7 @@ public class NoteDisplayActivity extends FragmentActivity {
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         //Set up view all button
-        TextView viewAll = findViewById(R.id.view_all_comments);
+        final TextView viewAll = findViewById(R.id.view_all_comments);
         viewAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -124,14 +124,8 @@ public class NoteDisplayActivity extends FragmentActivity {
             }
         });
 
-        //Decide whether to show all comments or not
-        if (comments.size() <= 5) {
-            mAdapter = new CommentAdapter(comments, this);
-        } else {
-            mAdapter = new CommentAdapter(comments.subList(0, 5), this);
-            viewAll.setVisibility(View.VISIBLE);
-        }
-
+        //Comments
+        mAdapter = new CommentAdapter(comments, NoteDisplayActivity.this);
         mRecyclerView.setAdapter(mAdapter);
 
         server.getJSONRequest("api/comments/" + thisNote.getId(), null, new Function<JSONObject>() {
@@ -144,37 +138,15 @@ public class NoteDisplayActivity extends FragmentActivity {
                             JSONObject obj = jsonComments.getJSONObject(i);
                             comments.add(new Comment(obj));
                         }
-                        mAdapter.setmDataset(comments);
-                        mAdapter.notifyDataSetChanged();
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
 
-        final LinearLayout imageLayout = findViewById(R.id.image_scroll);
-        server.getJSONRequest("api/images/" + thisNote.getId(), null, new Function<JSONObject>() {
-            @Override
-            public void run(JSONObject input) {
-                try {
-                    if (input.has("Images")) {
-                        JSONArray jsonImageUrls = input.getJSONArray("Images");
-                        Log.d("IMAGES", jsonImageUrls.toString());
-                        for (int i = 0; i < jsonImageUrls.length(); i++) {
-                            JSONObject imageJSON = jsonImageUrls.getJSONObject(i);
-                            String link = imageJSON.getString("URL");
-                            Log.d("IMAGE URL", link);
-                            ImageView imageToDisplay = new ImageView(NoteDisplayActivity.this);
-                            imageToDisplay.setPadding(2, 2, 2, 2);
-                            imageToDisplay.setAdjustViewBounds(true);
-                            imageToDisplay.setMaxWidth(300);
-                            imageToDisplay.setMaxHeight(300);
-                            Glide.with(NoteDisplayActivity.this)
-                                    .load(link)
-                                    .into(imageToDisplay);
-                            imageLayout.addView(imageToDisplay);
+                        //Decide whether to show all comments or not
+                        if (comments.size() <= 5) {
+                            mAdapter.setmDataset(comments);
+                        } else {
+                            mAdapter.setmDataset(comments.subList(0, 5));
+                            viewAll.setVisibility(View.VISIBLE);
                         }
+                        mAdapter.notifyDataSetChanged();
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -188,6 +160,48 @@ public class NoteDisplayActivity extends FragmentActivity {
         ImageView addComment = findViewById(R.id.send_comment);
         initialiseAdd(comment, profilePictureView, addComment, false, comments, mAdapter);
 
+        //Images
+        final LinearLayout imageLayout = findViewById(R.id.image_scroll);
+        server.getJSONRequest("api/images/" + thisNote.getId(), null, new Function<JSONObject>() {
+            @Override
+            public void run(JSONObject input) {
+                try {
+                    if (input.has("Images")) {
+                        JSONArray jsonImageUrls = input.getJSONArray("Images");
+                        Log.d("IMAGES", jsonImageUrls.toString());
+                        for (int i = 0; i < jsonImageUrls.length(); i++) {
+                            JSONObject imageJSON = jsonImageUrls.getJSONObject(i);
+                            final String link = imageJSON.getString("URL");
+                            Log.d("IMAGE URL", link);
+                            ImageView imageToDisplay = new ImageView(NoteDisplayActivity.this);
+
+                            imageToDisplay.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    Intent intent = new Intent();
+                                    intent.setAction(Intent.ACTION_VIEW);
+                                    intent.setDataAndType(Uri.parse(link), "image/*");
+                                    startActivity(intent);
+                                }
+                            });
+
+
+                            imageToDisplay.setPadding(2, 2, 2, 2);
+                            imageToDisplay.setAdjustViewBounds(true);
+                            imageToDisplay.setMaxWidth(300);
+                            imageToDisplay.setMaxHeight(300);
+                            Glide.with(NoteDisplayActivity.this)
+                                    .load(link)
+                                    .into(imageToDisplay);
+                            imageLayout.addView(imageToDisplay);
+                            findViewById(R.id.horizontal_scroll_images).setVisibility(View.VISIBLE);
+                        }
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
     }
 
