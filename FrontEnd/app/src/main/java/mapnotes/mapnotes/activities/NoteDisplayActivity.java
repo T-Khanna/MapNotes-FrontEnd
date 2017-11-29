@@ -13,6 +13,7 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -20,10 +21,13 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -105,8 +109,6 @@ public class NoteDisplayActivity extends FragmentActivity {
         //Create list of comments
         comments = new LinkedList<>();
 
-
-
         mRecyclerView = (RecyclerView) findViewById(R.id.comments);
 
         //Use a linear layout manager
@@ -151,11 +153,42 @@ public class NoteDisplayActivity extends FragmentActivity {
             }
         });
 
+        final LinearLayout imageLayout = findViewById(R.id.image_scroll);
+        server.getJSONRequest("api/images/" + thisNote.getId(), null, new Function<JSONObject>() {
+            @Override
+            public void run(JSONObject input) {
+                try {
+                    if (input.has("Images")) {
+                        JSONArray jsonImageUrls = input.getJSONArray("Images");
+                        Log.d("IMAGES", jsonImageUrls.toString());
+                        for (int i = 0; i < jsonImageUrls.length(); i++) {
+                            JSONObject imageJSON = jsonImageUrls.getJSONObject(i);
+                            String link = imageJSON.getString("URL");
+                            Log.d("IMAGE URL", link);
+                            ImageView imageToDisplay = new ImageView(NoteDisplayActivity.this);
+                            imageToDisplay.setPadding(2, 2, 2, 2);
+                            imageToDisplay.setAdjustViewBounds(true);
+                            imageToDisplay.setMaxWidth(300);
+                            imageToDisplay.setMaxHeight(300);
+                            Glide.with(NoteDisplayActivity.this)
+                                    .load(link)
+                                    .into(imageToDisplay);
+                            imageLayout.addView(imageToDisplay);
+                        }
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
         //Initialise adding comment
         final EditText comment = findViewById(R.id.edit_comment_text);
         final ImageView profilePictureView = findViewById(R.id.edit_profile_picture);
         ImageView addComment = findViewById(R.id.send_comment);
         initialiseAdd(comment, profilePictureView, addComment, false, comments, mAdapter);
+
+
     }
 
     private void initialiseAdd(final EditText comment, final ImageView profilePictureView,

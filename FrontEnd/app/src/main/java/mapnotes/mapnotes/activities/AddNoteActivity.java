@@ -352,23 +352,18 @@ public class AddNoteActivity extends FragmentActivity {
         Log.d("New Uri Path", newUri.getPath());
         File imageFile = new File(newUri.getPath());
         Log.d("File path", imageFile.getAbsolutePath());
-        try {
-            String link = new ImgurAPIAccess().execute(encodeFileToBase64Binary(imageFile)).get();
-            thisNote.addImageUrl(link);
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
+        // Post Image to Imgur API and add it to list of image urls for this note.
+        new ImgurAPIAccess().execute(encodeFileToBase64Binary(imageFile));
     }
 
-    private class ImgurAPIAccess extends AsyncTask<String, Void, String> {
+    private class ImgurAPIAccess extends AsyncTask<String, Void, Void> {
 
         private final String clientId = "e6d087c58c469c5";
         private final String clientSecret = "afd171d304e6f7216ba38381a560d3b298d4f23b";
         private final String imgurURL = "https://api.imgur.com/3/image";
 
         @Override
-        protected String doInBackground(String... strings) {
-            String result = "";
+        protected Void doInBackground(String... strings) {
             RequestBody body = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
                     .addFormDataPart("image", strings[0])
@@ -388,17 +383,18 @@ public class AddNoteActivity extends FragmentActivity {
                 Response response = client.newCall(request).execute();
                 if (!response.isSuccessful()) {
                     Log.d("Imgur POST request", "Response Code: " + response.code());
-                    return result;
+                    return null;
                 }
                 String responseBody = response.body().string();
                 if (responseBody != null) {
                     JSONObject responseJSON = new JSONObject(responseBody);
-                    return responseJSON.getJSONObject("data").getString("link");
+                    String link =  responseJSON.getJSONObject("data").getString("link");
+                    thisNote.addImageUrl(link);
                 }
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
             }
-            return result;
+            return null;
         }
     }
 
