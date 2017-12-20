@@ -34,6 +34,7 @@ import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.ads.formats.NativeAd;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -74,6 +75,7 @@ import java.util.Set;
 
 import mapnotes.mapnotes.DatePickerFragment;
 import mapnotes.mapnotes.FilterDialog;
+import mapnotes.mapnotes.LocationHistoryService;
 import mapnotes.mapnotes.R;
 import mapnotes.mapnotes.Server;
 import mapnotes.mapnotes.data_classes.DateAndTime;
@@ -156,6 +158,9 @@ public class MainActivity extends AppCompatActivity
         //Get the notes and display them on the screen
         getNotes(selectedDate);
 
+
+        //Start background service
+        startService(new Intent(this, LocationHistoryService.class));
     }
 
     @Override
@@ -335,8 +340,10 @@ public class MainActivity extends AppCompatActivity
                 getLocation(new Function<Location>() {
                     @Override
                     public void run(Location input) {
-                        LatLng currentLoc = new LatLng(input.getLatitude(), input.getLongitude());
-                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLoc, 15));
+                        if (input != null) {
+                            LatLng currentLoc = new LatLng(input.getLatitude(), input.getLongitude());
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLoc, 15));
+                        }
                     }
                 });
             }
@@ -484,6 +491,7 @@ public class MainActivity extends AppCompatActivity
                 newNote.setUserEmail(users);
                 JSONObject params = newNote.toJson();
 
+                //Send new note to the server
                 server.postJSONRequest("api/notes", params, new Function<JSONObject>() {
                     @Override
                     public void run(JSONObject input) {
@@ -505,6 +513,10 @@ public class MainActivity extends AppCompatActivity
                                 getNotes(selectedDate);
                             }
                         }
+
+                        CharSequence text = "Event successfully added";
+                        Toast toast = Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG);
+                        toast.show();
                     }
                 });
 

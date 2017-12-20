@@ -84,6 +84,9 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <service android:name=".LocationHistoryService"
+                 android:enabled="true"/>
+        <receiver android:name=".HistoryBroadcastReceiver"/>
     </application>
 
 </manifest>

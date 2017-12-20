@@ -1,5 +1,6 @@
 package mapnotes.mapnotes;
 
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -8,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 
@@ -23,6 +25,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import mapnotes.mapnotes.activities.GoogleSignInActivity;
+import mapnotes.mapnotes.activities.SplashScreenActivity;
 
 public class FirebaseNotifications extends FirebaseMessagingService {
 
@@ -81,7 +84,7 @@ public class FirebaseNotifications extends FirebaseMessagingService {
     }
 
     private void sendNotification(String messageBody) {
-        Intent intent = new Intent(this, GoogleSignInActivity.class);
+        Intent intent = new Intent(this, SplashScreenActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
                 PendingIntent.FLAG_ONE_SHOT);
@@ -96,7 +99,8 @@ public class FirebaseNotifications extends FirebaseMessagingService {
             vibrateTime = null;
         }
 
-        String channelId = "234";
+        String channelId = "Firebase_notifications";
+        initChannels(channelId, "Firebase Service");
         NotificationCompat.Builder notificationBuilder =
                 new NotificationCompat.Builder(this, channelId)
                         .setSmallIcon(R.drawable.ic_stat_map)
@@ -110,6 +114,19 @@ public class FirebaseNotifications extends FirebaseMessagingService {
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        notificationManager.notify(0123, notificationBuilder.build());
+        notificationManager.notify(1, notificationBuilder.build());
+    }
+
+    private void initChannels(String channelID, String description) {
+        if (Build.VERSION.SDK_INT < 26) {
+            return;
+        }
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationChannel channel = new NotificationChannel(channelID,
+                "FirebaseService",
+                NotificationManager.IMPORTANCE_DEFAULT);
+        channel.setDescription(description);
+        notificationManager.createNotificationChannel(channel);
     }
 }

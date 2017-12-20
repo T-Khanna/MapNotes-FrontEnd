@@ -1,5 +1,6 @@
 package mapnotes.mapnotes.activities;
 
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -71,6 +72,8 @@ public class NoteDisplayActivity extends FragmentActivity {
     private View overallView;
     private LinkedList<Comment> comments;
     private Server server;
+    private boolean descriptionExtended = false;
+    private final int MAX_LINES = 8;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -340,8 +343,38 @@ public class NoteDisplayActivity extends FragmentActivity {
         TextView title = findViewById(R.id.title);
         title.setText(thisNote.getTitle());
 
-        TextView description = findViewById(R.id.description);
+        final TextView description = findViewById(R.id.description);
         description.setText(thisNote.getDescription());
+
+        final TextView descExtend = findViewById(R.id.descriptionHide);
+        descExtend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (descriptionExtended) {
+                    ObjectAnimator animation = ObjectAnimator.ofInt(description, "maxLines", MAX_LINES);
+                    animation.setDuration(200).start();
+                    descriptionExtended = false;
+                    descExtend.setText("Show All");
+                } else {
+                    ObjectAnimator animation = ObjectAnimator.ofInt(description, "maxLines", description.getLineCount());
+                    animation.setDuration(200).start();
+                    descriptionExtended = true;
+                    descExtend.setText("Show Less");
+                }
+            }
+        });
+
+
+        //Need a post as textview must be drawn to get line count
+        description.post(new Runnable() {
+            @Override
+            public void run() {
+                if (description.getLineCount() <= MAX_LINES) {
+                    descExtend.setVisibility(View.GONE);
+                }
+            }
+        });
+
 
         ImageView cancelButton = findViewById(R.id.cancel_button);
         cancelButton.setOnClickListener(new View.OnClickListener() {

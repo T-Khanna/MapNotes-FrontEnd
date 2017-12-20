@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.ClipData;
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
@@ -95,6 +97,10 @@ public class AddNoteActivity extends FragmentActivity {
 
         final EditText title = findViewById(R.id.title);
         final EditText description = findViewById(R.id.description);
+        startTime = findViewById(R.id.start_time);
+        endTime = findViewById(R.id.end_time);
+        startDate = findViewById(R.id.start_date);
+        endDate = findViewById(R.id.end_date);
 
         Button saveButton = findViewById(R.id.save_button);
         saveButton.setOnClickListener(new View.OnClickListener() {
@@ -104,12 +110,26 @@ public class AddNoteActivity extends FragmentActivity {
                 thisNote.setDescription(description.getText().toString().trim());
                 Calendar cal = Calendar.getInstance();
                 cal.add(Calendar.HOUR_OF_DAY, 1);
+                ColorStateList colorStateList = ColorStateList.valueOf(Color.RED);
 
-                if (thisNote.isValid()) {
-                    Intent result = new Intent();
-                    result.putExtra("note", thisNote);
-                    setResult(Activity.RESULT_OK, result);
-                    finish();
+
+                int noteValid = thisNote.isValid();
+                switch (noteValid) {
+                    case Note.VALID:
+                        Intent result = new Intent();
+                        result.putExtra("note", thisNote);
+                        setResult(Activity.RESULT_OK, result);
+                        finish();
+                        break;
+                    case Note.TITLE_ERROR:
+                        title.setBackgroundTintList(colorStateList);
+                        break;
+                    case Note.TIME_ERROR:
+                        startTime.setTextColor(Color.RED);
+                        endTime.setTextColor(Color.RED);
+                        startDate.setTextColor(Color.RED);
+                        endDate.setTextColor(Color.RED);
+                        break;
                 }
             }
         });
@@ -123,7 +143,6 @@ public class AddNoteActivity extends FragmentActivity {
             }
         });
 
-        startTime = findViewById(R.id.start_time);
         startTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -141,7 +160,6 @@ public class AddNoteActivity extends FragmentActivity {
             }
         });
 
-        endTime = findViewById(R.id.end_time);
         endTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -159,7 +177,6 @@ public class AddNoteActivity extends FragmentActivity {
             }
         });
 
-        startDate = findViewById(R.id.start_date);
         startDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -177,7 +194,6 @@ public class AddNoteActivity extends FragmentActivity {
             }
         });
 
-        endDate = findViewById(R.id.end_date);
         endDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

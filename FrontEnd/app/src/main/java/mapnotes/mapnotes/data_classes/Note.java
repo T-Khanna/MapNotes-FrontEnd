@@ -30,6 +30,10 @@ public class Note implements Parcelable {
     private Set<String> tags = new HashSet<>();
     private HashSet<User> users = new HashSet<>();
     private HashSet<String> imageUrls = new HashSet<>();
+    public static final int TITLE_ERROR = 1;
+    public static final int VALID = 0;
+    public static final int LOCATION_ERROR = 2;
+    public static final int TIME_ERROR = 3;
 
     public Note(String title, String description, LatLng location, DateAndTime time,
                 DateAndTime endTime, int id, Set<String> tags, HashSet<User> users) {
@@ -128,13 +132,11 @@ public class Note implements Parcelable {
         return imageUrls.add(imageUrl);
     }
 
-    public boolean isValid() {
-        return title != null &&
-                !title.equals("") &&
-                time != null &&
-                endTime != null &&
-                endTime.after(time) &&
-                location != null;
+    public int isValid() {
+        if (title == null || title.equals("")) return TITLE_ERROR;
+        if (time == null || endTime == null || time.after(endTime)) return TIME_ERROR;
+        if (location == null) return LOCATION_ERROR;
+        return VALID;
     }
 
     //Parcelable section --------------------------------------------------------------------------
