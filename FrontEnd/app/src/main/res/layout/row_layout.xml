@@ -25,6 +25,8 @@
         <TextView
             android:id="@+id/summary"
             android:layout_width="wrap_content"
+            android:maxLines="2"
+            android:ellipsize="end"
             android:layout_height="wrap_content"
             android:textColor="@color/textColorSecondary"
             android:layout_marginLeft="2dp"
