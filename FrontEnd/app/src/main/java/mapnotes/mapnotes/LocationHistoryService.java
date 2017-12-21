@@ -9,11 +9,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -24,10 +22,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.Calendar;
-
-import mapnotes.mapnotes.activities.SplashScreenActivity;
 import mapnotes.mapnotes.data_classes.DateAndTime;
+import mapnotes.mapnotes.data_classes.EventCache;
 import mapnotes.mapnotes.data_classes.Function;
 import mapnotes.mapnotes.data_classes.Note;
 
@@ -35,8 +33,9 @@ public class LocationHistoryService extends Service
 {
     private static final String TAG = "MAPNOTESBACKGROUND";
     private LocationManager mLocationManager = null;
-    private static final int LOCATION_INTERVAL = 600000; //15 minutes (milliseconds)
+    private static final long LOCATION_INTERVAL = 900000; //15 minutes (milliseconds)
     private static final float LOCATION_DISTANCE = 100f; //100 meters
+    private EventCache eventCache;
 
     private class LocationListener implements android.location.LocationListener
     {
@@ -51,11 +50,20 @@ public class LocationHistoryService extends Service
         @Override
         public void onLocationChanged(Location location)
         {
+            Log.e(TAG, "onLocationChanged");
+
+            float[] results = new float[3];
+            Location.distanceBetween(location.getLatitude(), location.getLongitude(),
+                    mLastLocation.getLatitude(), mLastLocation.getLongitude(), results);
+
             mLastLocation.set(location);
-            GoogleSignInAccount result = GoogleSignIn.getLastSignedInAccount(LocationHistoryService.this);
-            if (result != null && result.getIdToken() != null) {
-                server = new Server(LocationHistoryService.this, result.getIdToken());
-                getNotes(new DateAndTime(Calendar.getInstance()));
+
+            if (results[0] >= LOCATION_DISTANCE) {
+                GoogleSignInAccount result = GoogleSignIn.getLastSignedInAccount(LocationHistoryService.this);
+                if (result != null && result.getIdToken() != null) {
+                    server = new Server(LocationHistoryService.this, result.getIdToken());
+                    getNotes(new DateAndTime(Calendar.getInstance()));
+                }
             }
         }
 
@@ -87,10 +95,19 @@ public class LocationHistoryService extends Service
 
                                     //If within 50 meters
                                     if (results[0] >= 0 && results[0] < 50) {
-                                        sendNotification("Are you at " + note.getTitle() + "?", note.getId());
+                                        if (!eventCache.contains(note.getTitle())) {
+                                            sendNotification("Are you at " + note.getTitle() + "?", note.getId());
+                                        }
+                                        eventCache.add(note.getTitle());
+                                        try {
+                                            eventCache.save();
+                                        } catch (IOException e){
+                                            Log.e(TAG, "Unable to save eventcache, " + e.getMessage());
+                                            e.printStackTrace();
+
+                                        }
                                         break;
                                     }
-
                                 }
                             }
                         } catch (JSONException e) {
@@ -144,10 +161,7 @@ public class LocationHistoryService extends Service
         }
     }
 
-    LocationListener[] mLocationListeners = new LocationListener[] {
-            new LocationListener(LocationManager.GPS_PROVIDER),
-            new LocationListener(LocationManager.NETWORK_PROVIDER)
-    };
+    LocationListener mLocationListeners = new LocationListener(LocationManager.NETWORK_PROVIDER);
 
     @Override
     public IBinder onBind(Intent arg0)
@@ -168,26 +182,17 @@ public class LocationHistoryService extends Service
     {
         Log.e(TAG, "onCreate");
         initializeLocationManager();
+        eventCache = new EventCache(this);
+        eventCache.clean();
         try {
             mLocationManager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
-                    mLocationListeners[1]);
+                    mLocationListeners);
         } catch (java.lang.SecurityException ex) {
             Log.i(TAG, "fail to request location update, ignore", ex);
         } catch (IllegalArgumentException ex) {
             Log.d(TAG, "network provider does not exist, " + ex.getMessage());
         }
-        try {
-            mLocationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
-                    mLocationListeners[0]);
-        } catch (java.lang.SecurityException ex) {
-            Log.i(TAG, "fail to request location update, ignore", ex);
-        } catch (IllegalArgumentException ex) {
-            Log.d(TAG, "gps provider does not exist " + ex.getMessage());
-        }
-
-
     }
 
     @Override
@@ -196,12 +201,10 @@ public class LocationHistoryService extends Service
         Log.e(TAG, "onDestroy");
         super.onDestroy();
         if (mLocationManager != null) {
-            for (int i = 0; i < mLocationListeners.length; i++) {
-                try {
-                    mLocationManager.removeUpdates(mLocationListeners[i]);
-                } catch (Exception ex) {
-                    Log.i(TAG, "fail to remove location listners, ignore", ex);
-                }
+            try {
+                mLocationManager.removeUpdates(mLocationListeners);
+            } catch (Exception ex) {
+                Log.i(TAG, "fail to remove location listners, ignore", ex);
             }
         }
     }

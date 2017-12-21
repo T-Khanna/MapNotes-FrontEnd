@@ -9,9 +9,7 @@ import android.util.Log;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 
-import java.util.Calendar;
-
-import mapnotes.mapnotes.data_classes.DateAndTime;
+import mapnotes.mapnotes.data_classes.Function;
 
 /**
  * Created by Thomas on 29/11/2017.
@@ -33,6 +31,12 @@ public class HistoryBroadcastReceiver extends BroadcastReceiver {
             GoogleSignInAccount result = GoogleSignIn.getLastSignedInAccount(context);
             if (result != null && result.getIdToken() != null) {
                 Server server = new Server(context, result.getIdToken());
+                server.postStringRequest("api/attended/" + id, null, new Function<String>() {
+                    @Override
+                    public void run(String input) {
+                        Log.e("BR", "Got response from server");
+                    }
+                });
                 Log.e("BR", "Send update to server");
             }
         }

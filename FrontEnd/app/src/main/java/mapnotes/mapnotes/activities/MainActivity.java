@@ -57,6 +57,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.maps.android.clustering.Cluster;
+import com.google.maps.android.clustering.ClusterManager;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -73,11 +75,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import mapnotes.mapnotes.CustomClusterRenderer;
 import mapnotes.mapnotes.DatePickerFragment;
 import mapnotes.mapnotes.FilterDialog;
 import mapnotes.mapnotes.LocationHistoryService;
 import mapnotes.mapnotes.R;
 import mapnotes.mapnotes.Server;
+import mapnotes.mapnotes.data_classes.ClusteredMarker;
 import mapnotes.mapnotes.data_classes.DateAndTime;
 import mapnotes.mapnotes.data_classes.Function;
 import mapnotes.mapnotes.data_classes.Note;
@@ -85,9 +89,10 @@ import mapnotes.mapnotes.data_classes.Time;
 import mapnotes.mapnotes.data_classes.User;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback{
 
     private GoogleMap mMap;
+    private ClusterManager<ClusteredMarker> clusterManager;
     private SeekBar timeSlider;
     private Server server;
     private TextView sliderText;
@@ -97,7 +102,7 @@ public class MainActivity extends AppCompatActivity
     private final int REQUEST_EDIT_NOTE = 34680;
     private final int REQUEST_ACCESS_LOCATION = 0;
     private Marker lastMarker = null;
-    private Map<Note, Marker> notes = new HashMap<>();
+    private Map<Note, ClusteredMarker> notes = new HashMap<>();
     private DateAndTime selectedDate = null;
     private final boolean DEBUG = true;
     private SwipeRefreshLayout refresh;
@@ -184,8 +189,8 @@ public class MainActivity extends AppCompatActivity
             new FilterDialog(this, filterTags).setPositiveButton(new Function<List<String>>() {
                 @Override
                 public void run(List<String> input) {
-                    filter(input);
                     filterTags = input;
+                    filter();
                 }
             }).show();
         } else if (id == R.id.nav_settings) {
@@ -256,7 +261,6 @@ public class MainActivity extends AppCompatActivity
         //Disable Map Toolbar:
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
-        mMap.setOnInfoWindowClickListener(this);
 
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermission(Manifest.permission.ACCESS_FINE_LOCATION, REQUEST_ACCESS_LOCATION,
@@ -270,6 +274,31 @@ public class MainActivity extends AppCompatActivity
                     LatLng userLocation = new LatLng(input.getLatitude(), input.getLongitude());
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15));
                 }
+            }
+        });
+
+        clusterManager = new ClusterManager<ClusteredMarker>(this, mMap);
+        mMap.setOnCameraIdleListener(clusterManager);
+        mMap.setOnMarkerClickListener(clusterManager);
+        mMap.setOnInfoWindowClickListener(clusterManager);
+
+        final CustomClusterRenderer renderer = new CustomClusterRenderer(this, mMap, clusterManager);
+
+        clusterManager.setRenderer(renderer);
+
+        clusterManager.setOnClusterItemInfoWindowClickListener(new ClusterManager.OnClusterItemInfoWindowClickListener<ClusteredMarker>() {
+            @Override
+            public void onClusterItemInfoWindowClick(ClusteredMarker marker) {
+                Intent i = new Intent(MainActivity.this, NoteDisplayActivity.class);
+                i.putExtra("loginEmail", login.getEmail());
+                if (login.getPhotoUrl() != null) {
+                    i.putExtra("profile_picture", login.getPhotoUrl().toString());
+                }
+                i.putExtra("display_name", login.getDisplayName());
+                Note note = marker.getTag();
+                i.putExtra("note", note);
+                i.putExtra("login_id", login.getIdToken());
+                startActivityForResult(i, REQUEST_EDIT_NOTE);
             }
         });
 
@@ -371,8 +400,8 @@ public class MainActivity extends AppCompatActivity
                 public void run(JSONObject input) {
                     try {
                         if (input.has("Notes")) {
-                            mMap.clear();
-                            Map<Note, Marker> newNotes = new HashMap<>();
+                            clusterManager.clearItems();
+                            Map<Note, ClusteredMarker> newNotes = new HashMap<>();
                             JSONArray array = input.getJSONArray("Notes");
                             for (int i = 0; i < array.length(); i++) {
                                 JSONObject jsonNote = array.getJSONObject(i);
@@ -392,6 +421,7 @@ public class MainActivity extends AppCompatActivity
                                     newNotes.put(note, null);
                                 }
                             }
+                            clusterManager.cluster();
                             notes = newNotes;
                             refresh.setRefreshing(false);
                         }
@@ -526,6 +556,7 @@ public class MainActivity extends AppCompatActivity
 
                 if (startTime <= currentTime && currentTime <= endTime) {
                     addNoteMarker(newNote);
+                    clusterManager.cluster();
                     mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
                 }
 
@@ -538,9 +569,6 @@ public class MainActivity extends AppCompatActivity
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 final Note newNote = data.getParcelableExtra("note");
-
-                addNoteMarker(newNote);
-
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
             }
         }
@@ -600,72 +628,25 @@ public class MainActivity extends AppCompatActivity
     }
 
     /**
-     * Given a list of tags to filter by, only show notes that have those tags
-     * @param filterTags
+     * Only show notes in filterTags.
      */
-    private void filter(List<String> filterTags) {
-        Map<Note, Marker> newNotes = new HashMap<>();
-        for (Map.Entry entry : notes.entrySet()) {
-            Note note = (Note) entry.getKey();
-            boolean found = false;
-            if (filterTags == null || filterTags.size() == 0) {
-                found = true;
-            } else {
-                for (String tag : filterTags) {
-                    if (note.hasTag(tag)) {
-                        found = true;
-                        break;
-                    }
-                }
-            }
-            Marker marker = (Marker) entry.getValue();
-            if (!found) {
-                //If we didn't find a valid tag for filtering, remove marker
-                if (marker != null) {
-                    marker.remove();
-                }
-                newNotes.put(note, null);
-            } else {
-                //If we should show this note, make sure the marker for it exists
-                if (marker == null) {
-                    addNoteMarker(note, newNotes);
-                }
-            }
-        }
-        notes = newNotes;
+    private void filter() {
+        getNotes(selectedDate);
     }
 
-    /**
-     * Given a specific marker, open up the note information page corresponding to
-     * that marker
-     * @param marker marker that user clicked on
-     */
-    @Override
-    public void onInfoWindowClick(Marker marker) {
-        Intent i = new Intent(MainActivity.this, NoteDisplayActivity.class);
-        i.putExtra("loginEmail", login.getEmail());
-        if (login.getPhotoUrl() != null) {
-            i.putExtra("profile_picture", login.getPhotoUrl().toString());
-        }
-        i.putExtra("display_name", login.getDisplayName());
-        Note note = (Note) marker.getTag();
-        i.putExtra("note", note);
-        i.putExtra("login_id", login.getIdToken());
-        marker.remove();
-        startActivityForResult(i, REQUEST_EDIT_NOTE);
-    }
-
-    private Marker addNoteMarker(Note note) {
+    private ClusteredMarker addNoteMarker(Note note) {
         return addNoteMarker(note, notes);
     }
 
-    private Marker addNoteMarker(Note note, Map<Note, Marker> notes) {
-        Marker marker = mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
-        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_note));
-        marker.setTag(note);
+    private ClusteredMarker addNoteMarker(Note note, Map<Note, ClusteredMarker> notes) {
+        //Marker marker = mMap.addMarker(new MarkerOptions().position(note.getLocation()).title(note.getTitle()));
+        //marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_note));
+        ClusteredMarker newMarker = new ClusteredMarker(note.getLocation().latitude, note.getLocation().longitude, note.getTitle(), null);
+        clusterManager.addItem(newMarker);
+        newMarker.setTag(note);
 
         //Add note to class variable notes
-        notes.put(note, marker);
-        return marker;
+        notes.put(note, newMarker);
+        return newMarker;
     }
 }

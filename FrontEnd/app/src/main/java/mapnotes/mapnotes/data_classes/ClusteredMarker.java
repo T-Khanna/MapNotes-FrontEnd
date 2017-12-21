@@ -7,6 +7,7 @@ public class ClusteredMarker implements ClusterItem {
     private final LatLng mPosition;
     private String mTitle = "";
     private String mSnippet = "";
+    private Note note;
 
     public ClusteredMarker(double lat, double lng) {
         mPosition = new LatLng(lat, lng);
@@ -16,6 +17,14 @@ public class ClusteredMarker implements ClusterItem {
         mPosition = new LatLng(lat, lng);
         mTitle = title;
         mSnippet = snippet;
+    }
+
+    public void setTag (Note note) {
+        this.note = note;
+    }
+
+    public Note getTag () {
+        return note;
     }
 
     @Override
