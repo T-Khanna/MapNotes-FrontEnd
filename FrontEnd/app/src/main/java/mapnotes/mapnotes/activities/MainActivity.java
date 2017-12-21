@@ -209,16 +209,8 @@ public class MainActivity extends AppCompatActivity
                             noteList.add(new Note(notes.getJSONObject(i)));
                         }
 
-                        //Open history activity
-                        Intent i = new Intent(MainActivity.this, HistoryActivity.class);
-                        i.putExtra("notes", noteList);
-                        i.putExtra("loginEmail", login.getEmail());
-                        if (login.getPhotoUrl() != null) {
-                            i.putExtra("profile_picture", login.getPhotoUrl().toString());
-                        }
-                        i.putExtra("display_name", login.getDisplayName());
-                        i.putExtra("login_id", login.getIdToken());
-                        startActivity(i);
+                        startHistoryIntent(noteList, "Your History");
+
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -243,6 +235,20 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void startHistoryIntent(LinkedList<Note> noteList, String label) {
+        //Open history activity
+        Intent i = new Intent(MainActivity.this, HistoryActivity.class);
+        i.putExtra("notes", noteList);
+        i.putExtra("label", label);
+        i.putExtra("loginEmail", login.getEmail());
+        if (login.getPhotoUrl() != null) {
+            i.putExtra("profile_picture", login.getPhotoUrl().toString());
+        }
+        i.putExtra("display_name", login.getDisplayName());
+        i.putExtra("login_id", login.getIdToken());
+        startActivity(i);
     }
 
     /**
@@ -299,6 +305,21 @@ public class MainActivity extends AppCompatActivity
                 i.putExtra("note", note);
                 i.putExtra("login_id", login.getIdToken());
                 startActivityForResult(i, REQUEST_EDIT_NOTE);
+            }
+        });
+
+        clusterManager.setOnClusterClickListener(new ClusterManager.OnClusterClickListener<ClusteredMarker>() {
+            @Override
+            public boolean onClusterClick(Cluster<ClusteredMarker> cluster) {
+                float zoom = mMap.getCameraPosition().zoom;
+                if (zoom >= 17.5) { //Between street and building level zoom
+                    LinkedList<Note> noteList = new LinkedList<>();
+                    for (ClusteredMarker marker : cluster.getItems()) {
+                        noteList.add(marker.getTag());
+                    }
+                    startHistoryIntent(noteList, "Grouped Notes");
+                }
+                return false;
             }
         });
 

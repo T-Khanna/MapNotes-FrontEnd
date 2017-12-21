@@ -40,6 +40,8 @@ public class HistoryActivity extends AppCompatActivity {
         String email = i.getStringExtra("loginEmail");
         loginID = i.getStringExtra("login_id");
 
+        setTitle(i.getStringExtra("label"));
+
         if (i.hasExtra("profile_picture")) {
             profilePicture = i.getStringExtra("profile_picture");
         }
