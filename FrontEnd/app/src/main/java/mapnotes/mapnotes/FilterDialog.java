@@ -46,7 +46,7 @@ public class FilterDialog extends Dialog {
         addTag.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String newTag = tagText.getText().toString().trim();
+                String newTag = tagText.getText().toString().trim().toLowerCase();
                 if (!tags.contains(newTag)) {
                     tags.add(newTag);
                     tagLayout.setTags(tags);

@@ -3,13 +3,13 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
+    android:background="@color/textColorSecondary"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <RelativeLayout
         android:id="@+id/topPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="18dp"
         android:background="@color/colorPrimary">
 
         <Button
@@ -50,192 +50,192 @@
             android:maxLines="2"
             android:scrollbars="vertical"
             android:textColor="@color/textColorPrimary"
-            android:textColorHint="@color/textColorPrimary"
+            android:textColorHint="@color/textColorSecondary"
             android:textSize="23sp"/>
     </RelativeLayout>
 
-
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:minLines="1"
-        android:maxLines="4"
-        android:scrollbars="vertical"
-        android:hint="Enter description"
-        android:textColorHint="@color/black"
-        android:id="@+id/description"/>
-
-    <View
-        android:layout_width="fill_parent"
-        android:layout_height="1dp"
-        android:background="@color/textColorSecondary"
-        android:layout_marginBottom="8dp"
-        android:layout_marginTop="8dp"/>
-
-    <RelativeLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_access_time"
-            android:id="@+id/time_image"
-            android:layout_alignParentLeft="true"/>
-
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/time_image">
+            android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
+
+            <RelativeLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentTop="true"
-                android:id="@+id/start_date"
-                android:layout_marginLeft="16dp"
-                android:layout_marginTop="6dp"
-                android:textSize="18sp"
-                android:layout_marginBottom="24dp"/>
+                android:background="@color/textColorPrimary">
 
-            <TextView
-                android:layout_width="wrap_content"
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_access_time"
+                    android:id="@+id/time_image"
+                    android:layout_alignParentLeft="true"/>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@id/time_image">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentTop="true"
+                        android:id="@+id/start_date"
+                        android:layout_marginLeft="16dp"
+                        android:layout_marginTop="6dp"
+                        android:textSize="18sp"
+                        android:layout_marginBottom="24dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_alignParentRight="true"
+                        android:textSize="18sp"
+                        android:layout_marginTop="6dp"
+                        android:layout_marginRight="32dp"
+                        android:layout_marginBottom="24dp"
+                        android:id="@+id/start_time"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:layout_below="@+id/start_date"
+                        android:id="@+id/end_date"
+                        android:layout_marginLeft="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:textSize="18sp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_below="@+id/start_time"
+                        android:textSize="18sp"
+                        android:layout_marginBottom="16dp"
+                        android:layout_marginRight="32dp"
+                        android:id="@+id/end_time"/>
+
+                </RelativeLayout>
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentRight="true"
-                android:textSize="18sp"
-                android:layout_marginTop="6dp"
-                android:layout_marginRight="32dp"
-                android:layout_marginBottom="24dp"
-                android:id="@+id/start_time"/>
+                android:background="@color/textColorPrimary">
 
-            <TextView
-                android:layout_width="wrap_content"
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_location_on"
+                    android:layout_alignParentLeft="true"
+                    android:layout_marginRight="8dp"
+                    android:id="@+id/pin_icon"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:id="@+id/location_text"
+                    android:textSize="16sp"
+                    android:layout_toRightOf="@+id/pin_icon"
+                    android:text="Location: (Tap to change)"/>
+
+            </RelativeLayout>
+
+            <EditText
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_below="@+id/start_date"
-                android:id="@+id/end_date"
-                android:layout_marginLeft="16dp"
-                android:layout_marginBottom="24dp"
-                android:textSize="18sp"/>
+                android:background="@color/textColorPrimary"
+                android:paddingRight="8dp"
+                android:paddingLeft="8dp"
+                android:elevation="2dp"
+                android:minLines="2"
+                android:hint="Enter description"
+                android:textColorHint="@color/textColorSecondary"
+                android:id="@+id/description"
+                android:layout_marginBottom="8dp"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:layout_below="@+id/start_time"
-                android:textSize="18sp"
-                android:layout_marginBottom="24dp"
-                android:layout_marginRight="32dp"
-                android:id="@+id/end_time"/>
-
-        </RelativeLayout>
-
-    </RelativeLayout>
-
-    <View
-        android:layout_width="fill_parent"
-        android:layout_height="1dp"
-        android:background="@color/textColorSecondary"/>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_location_on"
-            android:layout_alignParentLeft="true"
-            android:layout_marginRight="8dp"
-            android:id="@+id/pin_icon"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:id="@+id/location_text"
-            android:textSize="16sp"
-            android:layout_toRightOf="@+id/pin_icon"
-            android:text="Location: (Tap to change)"/>
-
-    </RelativeLayout>
-
-    <View
-        android:layout_width="fill_parent"
-        android:layout_height="1dp"
-        android:background="@color/textColorSecondary"/>
-
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:src="@drawable/ic_label"
-            android:layout_centerVertical="true"
-            android:id="@+id/tag_icon"/>
-
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/add_tag_text"
-            android:layout_marginLeft="16dp"
-            android:layout_toRightOf="@+id/tag_icon"
-            android:layout_toLeftOf="@+id/add_tag"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:id="@+id/add_tag"
-            android:layout_marginRight="8dp"
-            android:text="Add Tag"/>
-    </RelativeLayout>
-
-    <co.lujun.androidtagview.TagContainerLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/tag_view"
-        android:padding="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        app:tag_enable_cross="true"/>
-
-    <View
-        android:layout_width="fill_parent"
-        android:layout_height="1dp"
-        android:background="@color/textColorSecondary"/>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="8dp">
-
-        <ImageButton
-            android:id="@+id/add_image"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
-            android:src="@drawable/ic_add_a_photo" />
-
-        <HorizontalScrollView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/add_image">
             <LinearLayout
-                android:id="@+id/image_scroll"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal" />
-        </HorizontalScrollView>
-    </RelativeLayout>
+                android:orientation="vertical"
+                android:background="@color/textColorPrimary"
+                android:elevation="2dp"
+                android:layout_marginBottom="8dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:src="@drawable/ic_label"
+                        android:layout_centerVertical="true"
+                        android:id="@+id/tag_icon"/>
+
+                    <EditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/add_tag_text"
+                        android:layout_marginLeft="16dp"
+                        android:layout_toRightOf="@+id/tag_icon"
+                        android:layout_toLeftOf="@+id/add_tag"/>
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:id="@+id/add_tag"
+                        android:layout_marginRight="8dp"
+                        android:text="Add Tag"/>
+                </RelativeLayout>
+
+                <co.lujun.androidtagview.TagContainerLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tag_view"
+                    android:padding="8dp"
+                    android:paddingLeft="8dp"
+                    android:paddingRight="8dp"
+                    app:tag_enable_cross="true"/>
+            </LinearLayout>
 
 
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/textColorPrimary"
+                android:elevation="2dp"
+                android:padding="8dp">
 
+                <ImageButton
+                    android:id="@+id/add_image"
+                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:src="@drawable/ic_add_a_photo" />
+
+                <HorizontalScrollView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toEndOf="@+id/add_image">
+                    <LinearLayout
+                        android:id="@+id/image_scroll"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
+            </RelativeLayout>
+        </LinearLayout>
+    </ScrollView>
 </LinearLayout>
 

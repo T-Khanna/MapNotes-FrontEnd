@@ -11,6 +11,9 @@ import android.location.Geocoder;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
@@ -19,6 +22,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -41,6 +45,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import co.lujun.androidtagview.TagContainerLayout;
 import co.lujun.androidtagview.TagView;
@@ -68,7 +74,8 @@ public class AddNoteActivity extends FragmentActivity {
     private LinearLayout addedImages;
     private final int REQUEST_LOCATION = 12786;
     private final int REQUEST_IMAGE = 1763;
-
+    private boolean uploadedImages = true;
+    private PictureLock picLock = new PictureLock(0);
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,10 +123,12 @@ public class AddNoteActivity extends FragmentActivity {
                 int noteValid = thisNote.isValid();
                 switch (noteValid) {
                     case Note.VALID:
-                        Intent result = new Intent();
-                        result.putExtra("note", thisNote);
-                        setResult(Activity.RESULT_OK, result);
-                        finish();
+                        if (uploadedImages) {
+                            Intent result = new Intent();
+                            result.putExtra("note", thisNote);
+                            setResult(Activity.RESULT_OK, result);
+                            finish();
+                        }
                         break;
                     case Note.TITLE_ERROR:
                         title.setBackgroundTintList(colorStateList);
@@ -220,7 +229,7 @@ public class AddNoteActivity extends FragmentActivity {
         addTag.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String newTag = tagText.getText().toString().trim();
+                String newTag = tagText.getText().toString().trim().toLowerCase();
                 if (thisNote.addTag(newTag)) {
                     tags.add(newTag);
                 }
@@ -325,12 +334,14 @@ public class AddNoteActivity extends FragmentActivity {
         if (requestCode == REQUEST_IMAGE) {
             if (resultCode == RESULT_OK) {
                 Log.d("Intent", data.toString());
+                uploadedImages = false;
                 // Check if multiple images were sent. If multiple images were sent
                 // the data INTENT object is null
                 if (data.getData() == null) {
                     // Retrieve the collection of selected images from the clip field
                     // in the intent
                     ClipData images = data.getClipData();
+                    picLock.add(images.getItemCount());
                     for (int i = 0; i < images.getItemCount(); i++) {
                         Uri uri = images.getItemAt(i).getUri();
                         addAndUploadImage(uri);
@@ -338,6 +349,7 @@ public class AddNoteActivity extends FragmentActivity {
                 } else {
                     // We are only dealing with one image sent through the data field
                     // in the intent
+                    picLock.add(1);
                     Uri selectedImageUri = data.getData();
                     addAndUploadImage(selectedImageUri);
                 }
@@ -347,6 +359,9 @@ public class AddNoteActivity extends FragmentActivity {
 
     private void addAndUploadImage(Uri selectedImageUri) {
         final ImageView imageToAdd = new ImageView(this);
+        final ProgressBar spinner = new ProgressBar(this);
+        spinner.setIndeterminate(true);
+        imageToAdd.setVisibility(View.GONE);
         imageToAdd.setPadding(2, 2, 2, 2);
         imageToAdd.setAdjustViewBounds(true);
         imageToAdd.setMaxWidth(300);
@@ -355,7 +370,7 @@ public class AddNoteActivity extends FragmentActivity {
                 .load(selectedImageUri)
                 .into(imageToAdd);
         addedImages.addView(imageToAdd);
-
+        addedImages.addView(spinner);
         String absolutePath = this.getFilesDir().getAbsolutePath();
         File tempFile = new File(absolutePath, "temp_image");
         try {
@@ -368,8 +383,34 @@ public class AddNoteActivity extends FragmentActivity {
         Log.d("New Uri Path", newUri.getPath());
         File imageFile = new File(newUri.getPath());
         Log.d("File path", imageFile.getAbsolutePath());
+
+        Handler handler = new Handler(Looper.getMainLooper()) {
+            @Override
+            public void handleMessage(Message inputMessage) {
+                imageToAdd.setVisibility(View.VISIBLE);
+                spinner.setVisibility(View.GONE);
+            }
+        };
+
         // Post Image to Imgur API and add it to list of image urls for this note.
-        new ImgurAPIAccess().execute(encodeFileToBase64Binary(imageFile));
+        new ImgurAPIAccess(handler).execute(encodeFileToBase64Binary(imageFile));
+    }
+
+    private class PictureLock {
+        private int count;
+
+        public PictureLock(int count) {
+            this.count = count;
+        }
+
+        public synchronized boolean decrement() {
+            count--;
+            return count == 0;
+        }
+
+        public synchronized void add(int amount) {
+            count += amount;
+        }
     }
 
     private class ImgurAPIAccess extends AsyncTask<String, Void, Void> {
@@ -377,6 +418,11 @@ public class AddNoteActivity extends FragmentActivity {
         private final String clientId = "e6d087c58c469c5";
         private final String clientSecret = "afd171d304e6f7216ba38381a560d3b298d4f23b";
         private final String imgurURL = "https://api.imgur.com/3/image";
+        private Handler handler;
+
+        public ImgurAPIAccess(Handler handler) {
+            this.handler = handler;
+        }
 
         @Override
         protected Void doInBackground(String... strings) {
@@ -409,6 +455,12 @@ public class AddNoteActivity extends FragmentActivity {
                 }
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
+            }
+            Message message = handler.obtainMessage();
+            message.sendToTarget();
+
+            if (picLock.decrement()) {
+                uploadedImages = true;
             }
             return null;
         }
