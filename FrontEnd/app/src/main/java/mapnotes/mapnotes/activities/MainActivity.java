@@ -346,6 +346,7 @@ public class MainActivity extends AppCompatActivity
                 Note note = marker.getTag();
                 i.putExtra("note", note);
                 i.putExtra("login_id", login.getIdToken());
+                clusterManager.removeItem(marker);
                 startActivityForResult(i, REQUEST_EDIT_NOTE);
             }
         });
@@ -645,6 +646,8 @@ public class MainActivity extends AppCompatActivity
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 final Note newNote = data.getParcelableExtra("note");
+                addNoteMarker(newNote);
+                clusterManager.cluster();
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
             }
         }

@@ -440,7 +440,12 @@ public class NoteDisplayActivity extends FragmentActivity {
                 thisNote = data.getParcelableExtra("note");
                 initialise();
 
-                //TODO: Add server update
+                server.putJSONRequest("api/notes", thisNote.toJson(), new Function<JSONObject>() {
+                    @Override
+                    public void run(JSONObject input) {
+
+                    }
+                });
             }
         }
     }
