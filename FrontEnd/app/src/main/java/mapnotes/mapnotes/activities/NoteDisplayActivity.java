@@ -155,7 +155,7 @@ public class NoteDisplayActivity extends FragmentActivity {
                     e.printStackTrace();
                 }
             }
-        });
+        }, null);
 
         //Initialise adding comment
         final EditText comment = findViewById(R.id.edit_comment_text);
@@ -204,7 +204,7 @@ public class NoteDisplayActivity extends FragmentActivity {
                     e.printStackTrace();
                 }
             }
-        });
+        }, null);
 
     }
 

@@ -114,7 +114,7 @@ public class LocationHistoryService extends Service
                             e.printStackTrace();
                         }
                     }
-                });
+                }, null);
             } catch (Exception e) {
                 e.printStackTrace();
             }

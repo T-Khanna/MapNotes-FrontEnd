@@ -88,7 +88,7 @@ public class Server {
         genericStringRequest(Request.Method.POST, serverLocation, params, onResponse);
     }
 
-    public void getJSONRequest(String serverLocation, Map<String, String> params, final Function<JSONObject> onResponse) {
+    public void getJSONRequest(String serverLocation, Map<String, String> params, final Function<JSONObject> onResponse, final Function<VolleyError> onError) {
         Uri.Builder builder = Uri.parse(IP + serverLocation).buildUpon();
         if (params != null) {
             for (Map.Entry<String, String> element : params.entrySet()) {
@@ -104,7 +104,11 @@ public class Server {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                error.printStackTrace();
+                if (onError != null) {
+                    onError.run(error);
+                } else {
+                    error.printStackTrace();
+                }
             }
         }) {
             @Override

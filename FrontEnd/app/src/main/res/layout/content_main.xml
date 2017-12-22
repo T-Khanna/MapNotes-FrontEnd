@@ -69,11 +69,20 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="7dp"
+        android:layout_marginBottom="10dp"
         android:id="@+id/date_view"
         android:padding="8dp"
         android:textSize="18dp"
         android:textColor="@color/textColorPrimary"
         android:background="@drawable/layout_background"
         android:layout_centerHorizontal="true"/>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@mipmap/ic_current_time"
+        android:id="@+id/current_time_button"
+        android:layout_margin="7dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"/>
 </RelativeLayout>

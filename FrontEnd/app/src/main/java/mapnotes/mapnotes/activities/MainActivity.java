@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -36,6 +37,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.VolleyError;
 import com.google.android.gms.ads.formats.NativeAd;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -49,6 +51,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -110,6 +113,7 @@ public class MainActivity extends AppCompatActivity
     private ImageView location;
     private List<String> filterTags = new LinkedList<>();
     private GoogleSignInClient googleSignInClient;
+    private String TAG = MainActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,12 +141,23 @@ public class MainActivity extends AppCompatActivity
 
         timeSlider.setMax(95); //Number of 15 min intervals in a day
         Calendar cal = Calendar.getInstance();
-        timeSlider.setProgress(cal.get(Calendar.HOUR_OF_DAY) * 4);
         mapFragment.getMapAsync(this);
 
         selectedDate = new DateAndTime(cal);
         dateView = (TextView) findViewById(R.id.date_view);
         updateDateView();
+        updateTimeView();
+
+        ImageView currentTimeButton = findViewById(R.id.current_time_button);
+        currentTimeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                selectedDate = new DateAndTime(Calendar.getInstance());
+                getNotes(selectedDate);
+                updateDateView();
+                updateTimeView();
+            }
+        });
 
         View header = navigationView.getHeaderView(0);
         ImageView userPicture = header.findViewById(R.id.user_picture);
@@ -159,10 +174,13 @@ public class MainActivity extends AppCompatActivity
         prefEdit.putString("email", login.getEmail());
         prefEdit.commit();
 
-
-        //Get the notes and display them on the screen
-        getNotes(selectedDate);
-
+        refresh = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh);
+        refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                getNotes(selectedDate);
+            }
+        });
 
         //Start background service
         startService(new Intent(this, LocationHistoryService.class));
@@ -214,6 +232,12 @@ public class MainActivity extends AppCompatActivity
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                }
+            }, new Function<VolleyError>() {
+                @Override
+                public void run(VolleyError input) {
+                    Toast toast = Toast.makeText(MainActivity.this, input.getMessage(), Toast.LENGTH_LONG);
+                    toast.show();
                 }
             });
         } else if (id == R.id.sign_out) {
@@ -268,9 +292,26 @@ public class MainActivity extends AppCompatActivity
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
+        //Get the notes and display them on the screen
+        getNotes(selectedDate);
+
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermission(Manifest.permission.ACCESS_FINE_LOCATION, REQUEST_ACCESS_LOCATION,
                     "Want location to allow you to easily see where you are");
+        }
+
+        try {
+            // Customise the styling of the base map using a JSON object defined
+            // in a raw resource file.
+            boolean success = googleMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                            this, R.raw.style_json));
+
+            if (!success) {
+                Log.e(TAG, "Style parsing failed.");
+            }
+        } catch (Resources.NotFoundException e) {
+            Log.e(TAG, "Can't find style. Error: ", e);
         }
 
         getLocation(new Function<Location>() {
@@ -376,14 +417,6 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        refresh = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh);
-        refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                getNotes(selectedDate);
-            }
-        });
-
         location.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -414,6 +447,7 @@ public class MainActivity extends AppCompatActivity
      * @param date - The date and time (DateAndTime) to get the notes from the server
      */
     private void getNotes(DateAndTime date) {
+        refresh.setRefreshing(true);
         try {
             String url = "api/notes/time/\"" + date.toString() + "\"";
             server.getJSONRequest(url, null, new Function<JSONObject>() {
@@ -449,6 +483,13 @@ public class MainActivity extends AppCompatActivity
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                }
+            }, new Function<VolleyError>() {
+                @Override
+                public void run(VolleyError input) {
+                    Toast toast = Toast.makeText(MainActivity.this, input.getMessage(), Toast.LENGTH_LONG);
+                    refresh.setRefreshing(false);
+                    toast.show();
                 }
             });
         } catch (Exception e) {
@@ -613,6 +654,10 @@ public class MainActivity extends AppCompatActivity
         SimpleDateFormat dateFormat = new SimpleDateFormat("E, MMM dd, YYYY");
         String date = dateFormat.format(d);
         dateView.setText(date);
+    }
+
+    private void updateTimeView() {
+        timeSlider.setProgress(selectedDate.getTime().getHourOfDay() * 4);
     }
 
     /**
