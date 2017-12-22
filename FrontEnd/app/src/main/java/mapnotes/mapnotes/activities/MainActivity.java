@@ -609,7 +609,7 @@ public class MainActivity extends AppCompatActivity
 
                         long startTime = newNote.getTime().toLong();
                         long currentTime = selectedDate.toLong();
-                        if (startTime + 900000 > currentTime) { //If within a 15 minute slot after current selected time
+                        if (startTime > currentTime + 60000 && startTime + 900000 > currentTime) { //If within a 15 minute slot after current selected time
                             int progress = timeSlider.getProgress();
                             if (progress < MAX_PROGRESS) {
                                 timeSlider.setProgress(progress + 1);
@@ -630,7 +630,7 @@ public class MainActivity extends AppCompatActivity
                 long currentTime = selectedDate.toLong();
                 long endTime = newNote.getEndTime().toLong();
 
-                if (startTime <= currentTime && currentTime <= endTime) {
+                if (startTime <= currentTime + 60000 && currentTime <= endTime) {
                     addNoteMarker(newNote);
                     clusterManager.cluster();
                     mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
