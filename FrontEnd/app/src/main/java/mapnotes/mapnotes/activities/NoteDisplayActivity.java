@@ -176,36 +176,38 @@ public class NoteDisplayActivity extends FragmentActivity {
                             JSONObject imageJSON = jsonImageUrls.getJSONObject(i);
                             final String link = imageJSON.getString("URL");
                             Log.d("IMAGE URL", link);
-                            ImageView imageToDisplay = new ImageView(NoteDisplayActivity.this);
-
-                            imageToDisplay.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    Intent intent = new Intent();
-                                    intent.setAction(Intent.ACTION_VIEW);
-                                    intent.setDataAndType(Uri.parse(link), "image/*");
-                                    startActivity(intent);
-                                }
-                            });
-
-
-                            imageToDisplay.setPadding(2, 2, 2, 2);
-                            imageToDisplay.setAdjustViewBounds(true);
-                            imageToDisplay.setMaxWidth(300);
-                            imageToDisplay.setMaxHeight(300);
-                            Glide.with(NoteDisplayActivity.this)
-                                    .load(link)
-                                    .into(imageToDisplay);
-                            imageLayout.addView(imageToDisplay);
-                            findViewById(R.id.horizontal_scroll_images).setVisibility(View.VISIBLE);
+                            addImageToView(imageLayout, link);
                         }
+                        findViewById(R.id.horizontal_scroll_images).setVisibility(View.VISIBLE);
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
         }, null);
+    }
 
+    private void addImageToView(LinearLayout imageLayout, final String link) {
+        ImageView imageToDisplay = new ImageView(NoteDisplayActivity.this);
+
+        imageToDisplay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.parse(link), "image/*");
+                startActivity(intent);
+            }
+        });
+
+        imageToDisplay.setPadding(2, 2, 2, 2);
+        imageToDisplay.setAdjustViewBounds(true);
+        imageToDisplay.setMaxWidth(300);
+        imageToDisplay.setMaxHeight(300);
+        Glide.with(NoteDisplayActivity.this)
+                .load(link)
+                .into(imageToDisplay);
+        imageLayout.addView(imageToDisplay);
     }
 
     private void initialiseAdd(final EditText comment, final ImageView profilePictureView,
@@ -439,6 +441,12 @@ public class NoteDisplayActivity extends FragmentActivity {
             if (resultCode == RESULT_OK) {
                 thisNote = data.getParcelableExtra("note");
                 initialise();
+
+                final LinearLayout imageLayout = findViewById(R.id.image_scroll);
+                for (String link : thisNote.getImageURLs()) {
+                    addImageToView(imageLayout, link);
+                }
+                findViewById(R.id.horizontal_scroll_images).setVisibility(View.VISIBLE);
 
                 server.putJSONRequest("api/notes", thisNote.toJson(), new Function<JSONObject>() {
                     @Override

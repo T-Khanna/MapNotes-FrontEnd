@@ -109,6 +109,10 @@ public class Note implements Parcelable {
         return tags.add(tag);
     }
 
+    public Set<String> getImageURLs() {
+        return imageUrls;
+    }
+
     public void removeTag(String tag) {
         tags.remove(tag);
     }
@@ -154,8 +158,6 @@ public class Note implements Parcelable {
         bundle.putSerializable("endTime", endTime);
         bundle.putString("title", title);
         bundle.putString("description", description);
-        //User[] userArray = users.toArray(new User[0]);
-        //parcel.writeTypedArray(userArray, 0);
         bundle.putSerializable("users", users);
 
         if (id != null) {

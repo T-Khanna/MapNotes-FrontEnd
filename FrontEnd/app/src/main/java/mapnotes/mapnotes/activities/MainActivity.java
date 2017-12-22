@@ -489,7 +489,13 @@ public class MainActivity extends AppCompatActivity
             }, new Function<VolleyError>() {
                 @Override
                 public void run(VolleyError input) {
-                    Toast toast = Toast.makeText(MainActivity.this, input.getMessage(), Toast.LENGTH_LONG);
+                    String message;
+                    if (input.getMessage() == null || input.getMessage() == "") {
+                        message = "Error connecting to server";
+                    } else {
+                        message = input.getMessage();
+                    }
+                    Toast toast = Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG);
                     refresh.setRefreshing(false);
                     toast.show();
                 }
