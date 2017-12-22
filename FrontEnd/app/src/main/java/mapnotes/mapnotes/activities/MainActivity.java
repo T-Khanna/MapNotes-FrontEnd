@@ -114,6 +114,7 @@ public class MainActivity extends AppCompatActivity
     private List<String> filterTags = new LinkedList<>();
     private GoogleSignInClient googleSignInClient;
     private String TAG = MainActivity.class.getSimpleName();
+    private int MAX_PROGRESS = 95;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -139,7 +140,7 @@ public class MainActivity extends AppCompatActivity
         addNote = (ImageView) findViewById(R.id.add_note);
         location = (ImageView) findViewById(R.id.location_icon);
 
-        timeSlider.setMax(95); //Number of 15 min intervals in a day
+        timeSlider.setMax(MAX_PROGRESS); //Number of 15 min intervals in a day
         Calendar cal = Calendar.getInstance();
         mapFragment.getMapAsync(this);
 
@@ -606,13 +607,26 @@ public class MainActivity extends AppCompatActivity
                             }
                         }
 
+                        long startTime = newNote.getTime().toLong();
+                        long currentTime = selectedDate.toLong();
+                        if (startTime + 900000 > currentTime) { //If within a 15 minute slot after current selected time
+                            int progress = timeSlider.getProgress();
+                            if (progress < MAX_PROGRESS) {
+                                timeSlider.setProgress(progress + 1);
+                                Time selectedTime = new Time(getSelectedHour(timeSlider.getProgress()), getSelectedMinute(timeSlider.getProgress()));
+                                selectedDate.setTime(selectedTime);
+                                getNotes(selectedDate);
+                                mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
+                            }
+                        }
+
                         CharSequence text = "Event successfully added";
                         Toast toast = Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG);
                         toast.show();
                     }
                 });
 
-                long startTime = newNote.getTime().toLong() - 1200000;
+                long startTime = newNote.getTime().toLong();
                 long currentTime = selectedDate.toLong();
                 long endTime = newNote.getEndTime().toLong();
 
@@ -657,7 +671,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void updateTimeView() {
-        timeSlider.setProgress(selectedDate.getTime().getHourOfDay() * 4);
+        int minute = selectedDate.getTime().getMinute() / 15;
+        timeSlider.setProgress(selectedDate.getTime().getHourOfDay() * 4 + minute);
     }
 
     /**

@@ -121,6 +121,9 @@ public class SelectLocationActivity extends FragmentActivity implements OnMapRea
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                actualLocation = latLng.latitude + ", " + latLng.longitude;
+                locationText.setText(actualLocation);
+                bottomLayout.setVisibility(View.VISIBLE);
             }
         } else {
             Toast.makeText(getApplicationContext(), "latitude and longitude are null", Toast.LENGTH_LONG).show();
