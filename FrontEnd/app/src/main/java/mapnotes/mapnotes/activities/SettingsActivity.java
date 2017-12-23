@@ -4,6 +4,7 @@ package mapnotes.mapnotes.activities;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
@@ -27,6 +28,7 @@ import mapnotes.mapnotes.Preferences.TagPreference;
 import mapnotes.mapnotes.R;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
 
@@ -265,5 +267,17 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 finish();
         }
         return true;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        long exp = sharedPref.getLong("exp", Long.MAX_VALUE);
+        if (Calendar.getInstance().getTimeInMillis() > exp) {
+            Intent i = new Intent(this, SplashScreenActivity.class);
+            startActivity(i);
+            finish();
+        }
     }
 }

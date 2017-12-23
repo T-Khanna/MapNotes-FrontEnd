@@ -1,6 +1,9 @@
 package mapnotes.mapnotes.activities;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,6 +16,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+
+import java.util.Calendar;
 
 import mapnotes.mapnotes.R;
 
@@ -87,6 +92,11 @@ public class GoogleSignInActivity extends AppCompatActivity {
             i.putExtra("googleSignIn", acct);
             i.putExtra("googleSignInOptions", gso);
             startActivity(i);
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            long exp = Calendar.getInstance().getTimeInMillis() + 3000000;
+            editor.putLong("exp", exp);
+            editor.apply();
             finish();
         } else {
             // Signed out, show unauthenticated UI.

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DialogFragment;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -440,6 +441,13 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onResume() {
         super.onResume();
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        long exp = sharedPref.getLong("exp", Long.MAX_VALUE);
+        if (Calendar.getInstance().getTimeInMillis() > exp) {
+            Intent i = new Intent(this, SplashScreenActivity.class);
+            startActivity(i);
+            finish();
+        }
         if (mMap != null) updateUI();
     }
 

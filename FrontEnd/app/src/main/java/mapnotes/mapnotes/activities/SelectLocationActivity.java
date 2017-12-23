@@ -1,12 +1,15 @@
 package mapnotes.mapnotes.activities;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -27,6 +30,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import java.util.Calendar;
 import java.util.List;
 
 import mapnotes.mapnotes.R;
@@ -133,6 +137,13 @@ public class SelectLocationActivity extends FragmentActivity implements OnMapRea
     @Override
     public void onResume() {
         super.onResume();
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        long exp = sharedPref.getLong("exp", Long.MAX_VALUE);
+        if (Calendar.getInstance().getTimeInMillis() > exp) {
+            Intent i = new Intent(this, SplashScreenActivity.class);
+            startActivity(i);
+            finish();
+        }
         if (mMap != null) {
             updateUI();
         }

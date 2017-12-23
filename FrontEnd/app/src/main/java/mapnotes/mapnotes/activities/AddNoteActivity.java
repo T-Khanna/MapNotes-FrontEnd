@@ -3,7 +3,9 @@ package mapnotes.mapnotes.activities;
 import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.location.Address;
@@ -14,6 +16,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
@@ -532,6 +535,18 @@ public class AddNoteActivity extends FragmentActivity {
             }
         } catch (IOException e) {
             return location.latitude + ", " + location.longitude;
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        long exp = sharedPref.getLong("exp", Long.MAX_VALUE);
+        if (Calendar.getInstance().getTimeInMillis() > exp) {
+            Intent i = new Intent(this, SplashScreenActivity.class);
+            startActivity(i);
+            finish();
         }
     }
 

@@ -4,12 +4,14 @@ import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -44,6 +46,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -178,7 +181,9 @@ public class NoteDisplayActivity extends FragmentActivity {
                             Log.d("IMAGE URL", link);
                             addImageToView(imageLayout, link);
                         }
-                        findViewById(R.id.horizontal_scroll_images).setVisibility(View.VISIBLE);
+                        if (jsonImageUrls.length() > 0) {
+                            findViewById(R.id.horizontal_scroll_images).setVisibility(View.VISIBLE);
+                        }
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -405,6 +410,13 @@ public class NoteDisplayActivity extends FragmentActivity {
     @Override
     public void onResume() {
         super.onResume();
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        long exp = sharedPref.getLong("exp", Long.MAX_VALUE);
+        if (Calendar.getInstance().getTimeInMillis() > exp) {
+            Intent i = new Intent(this, SplashScreenActivity.class);
+            startActivity(i);
+            finish();
+        }
     }
 
     private void updateTimes(TextView dateView, TextView timeView, DateAndTime time) {
@@ -446,8 +458,9 @@ public class NoteDisplayActivity extends FragmentActivity {
                 for (String link : thisNote.getImageURLs()) {
                     addImageToView(imageLayout, link);
                 }
-                findViewById(R.id.horizontal_scroll_images).setVisibility(View.VISIBLE);
-
+                if (thisNote.getImageURLs().size() > 0) {
+                    findViewById(R.id.horizontal_scroll_images).setVisibility(View.VISIBLE);
+                }
                 server.putJSONRequest("api/notes", thisNote.toJson(), new Function<JSONObject>() {
                     @Override
                     public void run(JSONObject input) {
