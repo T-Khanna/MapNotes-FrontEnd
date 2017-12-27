@@ -60,7 +60,7 @@ public class TagPreference extends DialogPreference {
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String newTag = tagToAdd.getText().toString().trim();
+                String newTag = tagToAdd.getText().toString().trim().toLowerCase();
                 if (!tags.contains(newTag)) {
                     tags.add(newTag);
                     tagLayout.setTags(tags);

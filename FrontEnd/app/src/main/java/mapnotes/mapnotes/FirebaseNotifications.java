@@ -65,16 +65,12 @@ public class FirebaseNotifications extends FirebaseMessagingService {
                                 Map<String, String> data = message.getData();
                                 double latitude = Double.valueOf(data.get("latitude"));
                                 double longitude = Double.valueOf(data.get("longitude"));
-                                long start_time = Long.valueOf(data.get("start_time"));
-                                long end_time = Long.valueOf(data.get("end_time"));
                                 String user = data.get("user");
                                 float[] results = new float[1];
                                 Location.distanceBetween(location.getLatitude(), location.getLongitude(),
                                         latitude, longitude, results);
 
-                                long currentTime = Calendar.getInstance().getTimeInMillis();
-                                if (results[0] < 1000 && email != null && !email.equals(user)
-                                        && currentTime >= start_time && currentTime <= end_time) {
+                                if (results[0] < 1000 && email != null && !email.equals(user)) {
                                     sendNotification("New event less than 1 km away!");
                                 }
                             }

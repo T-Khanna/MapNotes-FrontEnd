@@ -635,6 +635,13 @@ public class MainActivity extends AppCompatActivity
                             }
                         }
 
+                        //Send a push notification to other users
+                        currentTime = Calendar.getInstance().getTimeInMillis();
+                        if (currentTime >= newNote.getTime().toLong() && currentTime <= newNote.getEndTime().toLong()) {
+                            sendTopicUpdate(newNote.getTags(), newNote);
+                        }
+
+
                         CharSequence text = "Event successfully added";
                         Toast toast = Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG);
                         toast.show();
@@ -649,11 +656,6 @@ public class MainActivity extends AppCompatActivity
                     addNoteMarker(newNote);
                     clusterManager.cluster();
                     mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
-                }
-
-                //Send a push notification to other users
-                if (newNote.getTags().size() > 0) {
-                    sendTopicUpdate(newNote.getTags(), newNote);
                 }
             }
         } else if (requestCode == REQUEST_EDIT_NOTE) {
@@ -700,6 +702,7 @@ public class MainActivity extends AppCompatActivity
      */
     private void sendTopicUpdate(Set<String> tags, Note note) {
         JSONObject obj = new JSONObject();
+        tags.add("all");
         try {
             String conditions = "";
             for (String tag : tags) {
@@ -711,8 +714,6 @@ public class MainActivity extends AppCompatActivity
             data.put("latitude", note.getLocation().latitude + "");
             data.put("longitude", note.getLocation().longitude + "");
             data.put("user", login.getEmail());
-            data.put("start_time", note.getTime().toLong() + "");
-            data.put("end_time", note.getEndTime().toLong() + "");
             obj.put("data", data);
             server.postToTopic(obj, new Function<JSONObject>() {
                 @Override
@@ -723,6 +724,7 @@ public class MainActivity extends AppCompatActivity
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        tags.remove("all");
     }
 
     /**
