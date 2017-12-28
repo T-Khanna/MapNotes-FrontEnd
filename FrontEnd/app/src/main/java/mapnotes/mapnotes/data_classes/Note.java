@@ -10,6 +10,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
@@ -27,16 +28,16 @@ public class Note implements Parcelable {
     private DateAndTime time = null;
     private DateAndTime endTime = null;
     private Integer id = null;
-    private Set<String> tags = new HashSet<>();
+    private HashSet<String> tags = new HashSet<>();
     private HashSet<User> users = new HashSet<>();
-    private HashSet<String> imageUrls = new HashSet<>();
+    private ArrayList<String> imageUrls = new ArrayList<>();
     public static final int TITLE_ERROR = 1;
     public static final int VALID = 0;
     public static final int LOCATION_ERROR = 2;
     public static final int TIME_ERROR = 3;
 
     public Note(String title, String description, LatLng location, DateAndTime time,
-                DateAndTime endTime, int id, Set<String> tags, HashSet<User> users) {
+                DateAndTime endTime, int id, HashSet<String> tags, HashSet<User> users, ArrayList<String> images) {
         this.title = title;
         this.description = description;
         this.location = location;
@@ -45,6 +46,7 @@ public class Note implements Parcelable {
         this.id = id;
         this.tags = tags;
         this.users = users;
+        imageUrls = images;
     }
 
     public Set<User> getUserEmail() {
@@ -109,7 +111,7 @@ public class Note implements Parcelable {
         return tags.add(tag);
     }
 
-    public Set<String> getImageURLs() {
+    public ArrayList<String> getImageURLs() {
         return imageUrls;
     }
 
@@ -141,6 +143,23 @@ public class Note implements Parcelable {
         if (time == null || endTime == null || time.after(endTime)) return TIME_ERROR;
         if (location == null) return LOCATION_ERROR;
         return VALID;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Note) {
+            Note noteObj = (Note) obj;
+            return (title.equals(noteObj.getTitle())
+                    && description.equals(noteObj.getDescription())
+                    && location.equals(noteObj.location)
+                    && time.equals(noteObj.getTime())
+                    && endTime.equals(noteObj.getEndTime())
+                    && id.equals(noteObj.getId())
+                    && tags.equals(noteObj.getTags())
+                    && users.equals(noteObj.getUserEmail())
+                    && imageUrls.equals(noteObj.getImageURLs()));
+        }
+        return false;
     }
 
     //Parcelable section --------------------------------------------------------------------------
@@ -186,7 +205,7 @@ public class Note implements Parcelable {
             }
         }
 
-        imageUrls = (HashSet<String>) bundle.getSerializable("images");
+        imageUrls = (ArrayList<String>) bundle.getSerializable("images");
 
         location = in.readParcelable(LatLng.class.getClassLoader());
     }
@@ -219,7 +238,7 @@ public class Note implements Parcelable {
             for (User user : users) {
                 usersArr.put(user);
             }
-            //jNote.put("users", usersArr);
+            jNote.put("users", usersArr);
 
             JSONArray arr = new JSONArray();
             for (String tag : tags) {
@@ -259,7 +278,7 @@ public class Note implements Parcelable {
             users = newUsers;
 
             JSONArray tagArray = object.getJSONArray("tags");
-            Set<String> newTags = new HashSet<>();
+            HashSet<String> newTags = new HashSet<>();
             for (int i = 0; i < tagArray.length(); i++) {
                 newTags.add(tagArray.getString(i));
             }

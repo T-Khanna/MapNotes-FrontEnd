@@ -147,6 +147,7 @@
                     android:id="@+id/location_text"
                     android:textSize="16sp"
                     android:layout_toRightOf="@+id/pin_icon"
+                    android:textColor="@color/textColorSecondary"
                     android:text="Location: (Tap to change)"/>
 
             </RelativeLayout>

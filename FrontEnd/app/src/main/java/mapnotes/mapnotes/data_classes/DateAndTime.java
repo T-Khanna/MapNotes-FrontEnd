@@ -31,29 +31,11 @@ public class DateAndTime implements Serializable {
         this.date = date;
     }
 
-    public DateAndTime(Time time, Date date) {
-        this.time = time;
-        this.date = date;
-    }
-
     public DateAndTime(Calendar cal) {
         int hour = cal.get(Calendar.HOUR_OF_DAY);
         int min = cal.get(Calendar.MINUTE);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.MILLISECOND, 0);
         time = new Time(hour, min);
         date = cal.getTime();
-    }
-
-
-
-    public long getMillis() {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(date);
-        cal.set(Calendar.HOUR_OF_DAY, time.getHourOfDay());
-        cal.set(Calendar.MINUTE, time.getMinute());
-        return cal.getTimeInMillis();
     }
 
     /**
@@ -116,6 +98,14 @@ public class DateAndTime implements Serializable {
         Date time = cal.getTime();
         SimpleDateFormat outputFmt = new SimpleDateFormat("MMM dd 'at' HH:mm");
         return outputFmt.format(time);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof DateAndTime) {
+            return ((DateAndTime) obj).toString().equals(toString());
+        }
+        return false;
     }
 
 }

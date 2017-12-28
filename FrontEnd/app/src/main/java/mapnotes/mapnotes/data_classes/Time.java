@@ -38,4 +38,12 @@ public class Time implements Serializable {
         return hourText + ":" + minText;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Time) {
+            return ((Time) obj).getMinute() == minute && ((Time) obj).getHourOfDay() == hourOfDay;
+        }
+        return false;
+    }
+
 }

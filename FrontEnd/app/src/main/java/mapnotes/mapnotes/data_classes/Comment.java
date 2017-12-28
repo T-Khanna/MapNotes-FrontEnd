@@ -79,4 +79,23 @@ public class Comment {
             return null;
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Comment comment = (Comment) o;
+
+        if (noteId != comment.noteId) return false;
+        if (displayName != null ? !displayName.equals(comment.displayName) : comment.displayName != null)
+            return false;
+        if (commentText != null ? !commentText.equals(comment.commentText) : comment.commentText != null)
+            return false;
+        if (profile_picture != null ? !profile_picture.equals(comment.profile_picture) : comment.profile_picture != null)
+            return false;
+        return sentTime != null ? sentTime.equals(comment.sentTime) : comment.sentTime == null;
+
+    }
+
 }

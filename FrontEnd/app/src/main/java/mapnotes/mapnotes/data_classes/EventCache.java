@@ -71,6 +71,15 @@ public class EventCache implements Collection<String> {
     }
 
     /**
+     * Purely for testing, to ensure old elements are removed
+     * @param toAdd
+     * @param time
+     */
+    public void add(String toAdd, Long time) {
+        cache.put(toAdd, time);
+    }
+
+    /**
      * Remove any old values from the map (more than a day old)
      */
     public void clean() {
@@ -81,7 +90,7 @@ public class EventCache implements Collection<String> {
         long time = cal.getTimeInMillis();
         HashMap<String, Long> newCache = new HashMap<>();
         for (Map.Entry<String, Long> entry : cache.entrySet()) {
-            if (entry.getValue() > time); {
+            if (entry.getValue() > time) {
                 newCache.put(entry.getKey(), entry.getValue());
             }
         }

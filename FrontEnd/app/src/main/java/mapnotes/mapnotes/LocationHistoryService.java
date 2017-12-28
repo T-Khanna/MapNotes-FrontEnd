@@ -34,7 +34,7 @@ public class LocationHistoryService extends Service
     private static final String TAG = "MAPNOTESBACKGROUND";
     private LocationManager mLocationManager = null;
     private static final long LOCATION_INTERVAL = 900000; //15 minutes (milliseconds)
-    private static final float LOCATION_DISTANCE = 100f; //100 meters
+    private static final float LOCATION_DISTANCE = 0f; //100 meters
     private EventCache eventCache;
 
     private class LocationListener implements android.location.LocationListener

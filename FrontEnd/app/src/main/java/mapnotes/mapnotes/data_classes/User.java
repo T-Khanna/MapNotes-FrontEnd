@@ -90,4 +90,15 @@ public class User implements Parcelable, Serializable {
             return new User[size];
         }
     };
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof User) {
+            User objUser = (User) obj;
+            return objUser.getEmail().equals(email)
+                    && objUser.getId() == id
+                    && objUser.getDisplayname().equals(displayname);
+        }
+        return false;
+    }
 }
