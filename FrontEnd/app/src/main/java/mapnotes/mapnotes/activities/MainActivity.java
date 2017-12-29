@@ -731,7 +731,36 @@ public class MainActivity extends AppCompatActivity
      * Only show notes in filterTags.
      */
     private void filter() {
-        getNotes(selectedDate);
+        Map<Note, ClusteredMarker> newNotes = new HashMap<>();
+        for (Map.Entry entry : notes.entrySet()) {
+            Note note = (Note) entry.getKey();
+            boolean found = false;
+            if (filterTags == null || filterTags.size() == 0) {
+                found = true;
+            } else {
+                for (String tag : filterTags) {
+                    if (note.hasTag(tag)) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            ClusteredMarker marker = (ClusteredMarker) entry.getValue();
+            if (!found) {
+                //If we didn't find a valid tag for filtering, remove marker
+                if (marker != null) {
+                    clusterManager.removeItem(marker);
+                }
+                newNotes.put(note, null);
+            } else {
+                //If we should show this note, make sure the marker for it exists
+                if (marker == null) {
+                    addNoteMarker(note, newNotes);
+                }
+            }
+        }
+        notes = newNotes;
+        clusterManager.cluster();
     }
 
     private ClusteredMarker addNoteMarker(Note note) {

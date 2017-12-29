@@ -156,7 +156,6 @@ public class Note implements Parcelable {
                     && endTime.equals(noteObj.getEndTime())
                     && id.equals(noteObj.getId())
                     && tags.equals(noteObj.getTags())
-                    && users.equals(noteObj.getUserEmail())
                     && imageUrls.equals(noteObj.getImageURLs()));
         }
         return false;
@@ -234,11 +233,11 @@ public class Note implements Parcelable {
             jNote.put("latitude", location.latitude);
             jNote.put("longitude", location.longitude);
 
-            JSONArray usersArr = new JSONArray();
+            /*JSONArray usersArr = new JSONArray();
             for (User user : users) {
-                usersArr.put(user);
-            }
-            jNote.put("users", usersArr);
+                usersArr.put(user.getEmail());
+            }*/
+            jNote.put("users", null);
 
             JSONArray arr = new JSONArray();
             for (String tag : tags) {
@@ -270,19 +269,21 @@ public class Note implements Parcelable {
             time = DateAndTime.fromString(object.getString("start_time"));
             endTime = DateAndTime.fromString(object.getString("end_time"));
 
-            JSONArray userArray = object.getJSONArray("users");
-            HashSet<User> newUsers = new HashSet<>();
-            for (int i = 0; i < userArray.length(); i++) {
-                newUsers.add(new User(userArray.getJSONObject(i)));
-            }
-            users = newUsers;
-
             JSONArray tagArray = object.getJSONArray("tags");
             HashSet<String> newTags = new HashSet<>();
             for (int i = 0; i < tagArray.length(); i++) {
                 newTags.add(tagArray.getString(i));
             }
             tags = newTags;
+
+            JSONArray userArray = object.getJSONArray("users");
+            if (userArray != null) {
+                HashSet<User> newUsers = new HashSet<>();
+                for (int i = 0; i < userArray.length(); i++) {
+                    newUsers.add(new User(userArray.getJSONObject(i)));
+                }
+                users = newUsers;
+            }
 
 //            JSONArray imagesArr = object.getJSONArray("images");
 //            HashSet<String> newImageUrls = new HashSet<>();
