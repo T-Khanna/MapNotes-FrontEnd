@@ -72,12 +72,12 @@ public class DateAndTime implements Serializable {
         cal.set(Calendar.MINUTE, time.getMinute());
         cal.setTimeZone(TimeZone.getTimeZone("UTC"));
         Date time = cal.getTime();
-        SimpleDateFormat outputFmt = new SimpleDateFormat("yyyy-M-d HH:mm:ss");
+        SimpleDateFormat outputFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return outputFmt.format(time);
     }
 
     public static DateAndTime fromString(String utc) {
-        SimpleDateFormat inputFmt = new SimpleDateFormat("yyyy-M-d HH:mm:ss");
+        SimpleDateFormat inputFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
             Date d = inputFmt.parse(utc);
             Calendar calendar = Calendar.getInstance();

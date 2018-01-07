@@ -624,7 +624,7 @@ public class MainActivity extends AppCompatActivity
 
                         long startTime = newNote.getTime().toLong();
                         long currentTime = selectedDate.toLong();
-                        if (startTime > currentTime + 60000 && startTime + 900000 > currentTime) { //If within a 15 minute slot after current selected time
+                        if (startTime > currentTime && startTime + 900000 > currentTime) { //If within a 15 minute slot after current selected time
                             int progress = timeSlider.getProgress();
                             if (progress < MAX_PROGRESS) {
                                 timeSlider.setProgress(progress + 1);
@@ -645,18 +645,16 @@ public class MainActivity extends AppCompatActivity
                         CharSequence text = "Event successfully added";
                         Toast toast = Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG);
                         toast.show();
+
+                        long endTime = newNote.getEndTime().toLong();
+
+                        if (startTime <= currentTime + 60000 && currentTime <= endTime) {
+                            addNoteMarker(newNote);
+                            clusterManager.cluster();
+                            mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
+                        }
                     }
                 });
-
-                long startTime = newNote.getTime().toLong();
-                long currentTime = selectedDate.toLong();
-                long endTime = newNote.getEndTime().toLong();
-
-                if (startTime <= currentTime + 60000 && currentTime <= endTime) {
-                    addNoteMarker(newNote);
-                    clusterManager.cluster();
-                    mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
-                }
             }
         } else if (requestCode == REQUEST_EDIT_NOTE) {
             // Make sure the request was successful
