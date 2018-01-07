@@ -12,6 +12,7 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -77,6 +78,8 @@ public class LocationHistoryService extends Service
         public void onStatusChanged(String provider, int status, Bundle extras) {}
 
         private void getNotes(DateAndTime date) {
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            final String email = sp.getString("email", "");
             try {
                 String url = "api/notes/time/\"" + date.toString() + "\"";
                 server.getJSONRequest(url, null, new Function<JSONObject>() {
@@ -95,7 +98,7 @@ public class LocationHistoryService extends Service
 
                                     //If within 50 meters
                                     if (results[0] >= 0 && results[0] < 50) {
-                                        if (!eventCache.contains(note.getTitle())) {
+                                        if (!eventCache.contains(note.getTitle()) && !note.userIsMemberOf(email)) {
                                             sendNotification("Are you at " + note.getTitle() + "?", note.getId());
                                         }
                                         eventCache.add(note.getTitle());

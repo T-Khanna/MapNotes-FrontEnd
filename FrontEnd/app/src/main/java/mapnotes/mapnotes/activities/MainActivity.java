@@ -173,6 +173,7 @@ public class MainActivity extends AppCompatActivity
         //Send the current user to the FirebaseNotifications service
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor prefEdit = pref.edit();
+        prefEdit.putString("user_id", login.getId());
         prefEdit.putString("email", login.getEmail());
         prefEdit.commit();
 
@@ -646,9 +647,10 @@ public class MainActivity extends AppCompatActivity
                         Toast toast = Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG);
                         toast.show();
 
+                        //Add note to map
                         long endTime = newNote.getEndTime().toLong();
 
-                        if (startTime <= currentTime + 60000 && currentTime <= endTime) {
+                        if (startTime <= currentTime && currentTime <= endTime) {
                             addNoteMarker(newNote);
                             clusterManager.cluster();
                             mMap.moveCamera(CameraUpdateFactory.newLatLng(newNote.getLocation()));
@@ -711,7 +713,7 @@ public class MainActivity extends AppCompatActivity
             JSONObject data = new JSONObject();
             data.put("latitude", note.getLocation().latitude + "");
             data.put("longitude", note.getLocation().longitude + "");
-            data.put("user", login.getEmail());
+            data.put("user_id", login.getId());
             obj.put("data", data);
             server.postToTopic(obj, new Function<JSONObject>() {
                 @Override

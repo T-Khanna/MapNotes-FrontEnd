@@ -84,7 +84,6 @@
             </intent-filter>
         </activity>
         <service android:name=".LocationHistoryService"
-                 android:process=".location_process"
                  android:enabled="true"/>
         <receiver android:name=".HistoryBroadcastReceiver"/>
     </application>

@@ -44,7 +44,7 @@ public class FirebaseNotifications extends FirebaseMessagingService {
     public void onCreate() {
         super.onCreate();
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-        email = sp.getString("email", "");
+        email = sp.getString("user_id", "");
     }
 
     @Override
@@ -65,7 +65,7 @@ public class FirebaseNotifications extends FirebaseMessagingService {
                                 Map<String, String> data = message.getData();
                                 double latitude = Double.valueOf(data.get("latitude"));
                                 double longitude = Double.valueOf(data.get("longitude"));
-                                String user = data.get("user");
+                                String user = data.get("user_id");
                                 float[] results = new float[1];
                                 Location.distanceBetween(location.getLatitude(), location.getLongitude(),
                                         latitude, longitude, results);

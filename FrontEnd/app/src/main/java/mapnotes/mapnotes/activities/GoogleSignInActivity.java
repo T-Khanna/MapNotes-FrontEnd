@@ -38,6 +38,7 @@ public class GoogleSignInActivity extends AppCompatActivity {
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken("371478445903-l0qtjdbu45ci2bobb5lhm41svvcbjc0u.apps.googleusercontent.com")
                 .requestEmail()
+                .requestId()
                 .build();
 
         // Build a GoogleApiClient with access to the Google Sign-In API and the
