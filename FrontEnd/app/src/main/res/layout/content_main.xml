@@ -14,35 +14,37 @@
     <android.support.v4.widget.SwipeRefreshLayout
         android:layout_width="match_parent"
         android:id="@+id/swipe_refresh"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
         android:layout_height="130dp">
         <ScrollView
             android:layout_width="match_parent"
             android:layout_alignParentTop="true"
             android:layout_height="wrap_content">
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@mipmap/ic_location"
-                    android:id="@+id/location_icon"
-                    android:layout_alignParentTop="true"
-                    android:padding="7dp"
-                    android:layout_alignParentRight="true"/>
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_add"
-                    android:id="@+id/add_note"
-                    android:padding="7dp"
-                    android:layout_below="@+id/location_icon"
-                    android:layout_alignParentRight="true"/>
-            </RelativeLayout>
         </ScrollView>
     </android.support.v4.widget.SwipeRefreshLayout>
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/ic_location"
+            android:id="@+id/location_icon"
+            android:layout_alignParentTop="true"
+            android:padding="7dp"
+            android:layout_alignParentRight="true"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_add"
+            android:id="@+id/add_note"
+            android:padding="7dp"
+            android:layout_below="@+id/location_icon"
+            android:layout_alignParentRight="true"/>
+    </RelativeLayout>
 
     <TextView
         android:layout_width="wrap_content"
